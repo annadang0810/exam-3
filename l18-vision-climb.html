@@ -1,0 +1,660 @@
+<title>Vision Climb</title>
+<meta name="description" content="Lecture 18 review game: vision, from the eye to the pupillary reflex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+
+/* Layout: one narrow column; home = a path from the senses to the pupil, run = card + figure + choices */
+:root{
+  --bg:#EDF1EE; --panel:#FFFFFF; --panel2:#F6F8F6; --ink:#15201C; --muted:#5A6A64; --line:#CFD9D4;
+  --accent:#0C7A63; --accent-ink:#FFFFFF; --cover:#EE8A22; --cover-dim:#B9C4BF; --ok:#1C8A4B; --bad:#C2372C; --star:#D99A0B;
+  --c1:#2F6FB7; --c2:#8A5BB0; --c3:#0C7A63; --c4:#C9821A; --c5:#C4467E;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.box:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.hero h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.02;letter-spacing:-.01em;margin-top:6px}
+.hero p{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.trace{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px 4px;overflow:hidden}
+.trace svg{display:block;width:100%;height:auto}
+.trace .grid{stroke:var(--line);stroke-width:1}
+.trace .curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round}
+.trace .dot{cursor:pointer}
+.trace .dot circle{fill:var(--panel);stroke:var(--accent);stroke-width:2.5}
+.trace .dot.done circle{fill:var(--accent)}
+.trace .dot text{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.trace .dot.done text{fill:var(--accent-ink)}
+.trace .ax{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 22px}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.mode b{font-family:var(--display);font-weight:700;font-size:17px}
+.mode span{color:var(--muted);font-size:13px}
+.mode:disabled{opacity:.45;cursor:default}
+.stages{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%}
+.stage .mv{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--accent);font-variant-numeric:tabular-nums}
+.stage h3{font-size:18px;font-weight:700}
+.stage small{color:var(--muted);display:block;font-size:13px}
+.stars{font-size:16px;letter-spacing:2px;color:var(--line);white-space:nowrap}
+.stars i{font-style:normal;color:var(--star)}
+.foot{color:var(--muted);font-size:13px;margin-top:22px}
+/* run */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:flex;flex-direction:column;gap:8px}
+.hudrow{display:flex;align-items:center;gap:10px;justify-content:space-between;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.mult{color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:8px}
+.ctx{background:var(--panel2);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:15px}
+.tag{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tag .tr{color:var(--c2);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.tag .hy{color:var(--bad);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.q{font-size:18px;font-weight:700;margin:2px 0 12px;white-space:pre-line}
+.fig{position:relative;width:100%;margin:4px 0 4px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.fig img{display:block;width:100%;height:auto}
+.box{position:absolute;border-radius:3px;background:var(--cover-dim);border:0;padding:0}
+.box.target{background:var(--cover);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--cover)}
+.box.tap{background:var(--cover);cursor:pointer}
+.box.tap:hover{filter:brightness(1.08)}
+.nomask .box{background:transparent}
+.nomask .box.target{background:color-mix(in srgb,var(--cover) 14%,transparent);box-shadow:none;outline:3px solid var(--cover);outline-offset:-3px}
+.box.right{background:transparent!important;outline:3px solid var(--ok);outline-offset:-1px;box-shadow:none}
+.box.wrong{background:transparent!important;outline:3px solid var(--bad);outline-offset:-1px;box-shadow:none}
+.figcap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--panel))}
+.opt:disabled{cursor:default}
+.sortitem{font-size:18px;font-weight:700;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cat{border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 10%,var(--panel));border-radius:10px;padding:12px 10px;font-weight:700}
+.cat.right{outline:3px solid var(--ok);outline-offset:2px}
+.cat.wrong{outline:3px solid var(--bad);outline-offset:2px}
+.seq{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-height:20px}
+.seq .slot{font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));display:flex;gap:8px}
+.seq .slot.wrong{background:color-mix(in srgb,var(--bad) 14%,var(--panel))}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--panel2);border:1.5px solid var(--line);border-radius:999px;padding:8px 13px;font-size:15px}
+.chip:disabled{opacity:.3}
+.mtgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.mtcol{display:flex;flex-direction:column;gap:8px}
+.mtb{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.mtb.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.mtb.paired{opacity:.55}
+.mtb.right{border-color:var(--ok)} .mtb.wrong{border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:10px;padding:12px 14px;font-size:15px}
+.fb.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border:1px solid var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 10%,var(--panel));border:1px solid var(--bad)}
+.fb b{display:block;margin-bottom:2px}
+.next{margin-top:14px;width:100%;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px;font-weight:700;font-size:17px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .next{flex:1 1 160px;margin-top:0}
+.actions .ghostbtn{flex:1 1 160px;background:none;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-weight:700}
+.result h2{font-size:30px;margin:6px 0}
+.big-stars{font-size:38px;letter-spacing:6px;color:var(--line)} .big-stars i{font-style:normal;color:var(--star)}
+.stat{font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.misslist{margin:12px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+@media (max-width:440px){.stage{grid-template-columns:54px minmax(0,1fr) auto;gap:10px;padding:12px}.stars{font-size:13px;letter-spacing:1px}.cats{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+</style>
+<div class="wrap" id="app"></div>
+<script>
+const DIA = {};
+const STAGES = [];
+let _sid = 0;
+function STAGE(name, sub, mv, items){ const s = {name, sub, mv, items: items.flat()}; s.items.forEach((it,i)=>{ it.id = 's'+STAGES.length+'_'+i; it.stage = STAGES.length; }); STAGES.push(s); }
+function mc(q,o,why,red){ return {t:'mc',q,o,why,hy:!!red}; }
+function im(img,q,o,why,red){ return {t:'mc',img,q,o,why,hy:!!red}; }
+function so(set,item,key,why,red){ return {t:'so',set,item,key,why,hy:!!red}; }
+function od(q,steps,why,red){ return {t:'od',q,steps,why,hy:!!red}; }
+function mt(q,pairs,why,red){ return {t:'mt',q,pairs,why,hy:!!red}; }
+function lb(dia,name,why,red){ return {t:'lb',dia,name,why,hy:!!red}; }
+function nm(dia,name,why,red,q,x){ x=x||{}; return {t:'nm',dia,name,why,hy:!!red,q:q||null,o:x.o||null,ans:x.ans||name,idx:x.idx||0}; }
+function cs(text,steps,red,img){ return steps.map(s=>({t:'mc',ctx:text,img:img||null,q:s[0],o:s[1],why:s[2],hy:!!red})); }
+
+</script>
+<script>
+// ===== Lecture 18 content: Vision =====
+function T(x){ (Array.isArray(x)?x:[x]).forEach(i=>i.trap=true); return x; }
+
+const SORTS = {
+  sense: {label: 'Special sense or general sense?', cats: [['sp','Special sense (own organ + dedicated area)','--c2'],['gen','General sense (receptors spread through the body)','--c4']]},
+  area: {label: 'Where is this special sense processed?', cats: [['vis','Visual cortex (occipital)','--c1'],['aud','Auditory cortex','--c2'],['cer','Cerebellum','--c3'],['ins','Gustatory cortex (anterior insula)','--c4'],['olf','Olfactory cortex, skipping the thalamus','--c5']]},
+  tunic: {label: 'Which tunic of the eyeball wall?', cats: [['fib','Fibrous (outer)','--c4'],['vas','Vascular / uvea (middle)','--c5'],['neu','Neural = retina (inner)','--c2']]},
+  fluid: {label: 'Aqueous humor or vitreous humor?', cats: [['aq','Aqueous humor (anterior cavity)','--c1'],['vit','Vitreous humor (posterior cavity)','--c3']]},
+  dl: {label: 'In a photoreceptor, is this true in DARKNESS or in LIGHT?', cats: [['dark','Darkness','--c5'],['light','Light','--c4']]},
+  path: {label: 'Which pathway has HIGH activity here?', cats: [['on','ON-center bipolar + ganglion','--c4'],['off','OFF-center bipolar + ganglion','--c5']]},
+  cyc: {label: 'Where does this visual-cycle step happen?', cats: [['pr','In the photoreceptor','--c2'],['rpe','In the RPE','--c3'],['tr','Transport between them (IRBP)','--c1']]},
+  arc: {label: 'Pupillary light reflex: which limb?', cats: [['aff','Afferent (into the brain)','--c4'],['cen','Center (midbrain)','--c2'],['eff','Efferent (out to the iris)','--c3']]},
+};
+
+/* ---------- Stage 1 ---------- */
+STAGE('Senses and the seeing brain','Special vs general senses, insula, eye vs brain','P1A', [
+  mc('What makes a sense a SPECIAL sense?',['A specialized sense organ plus a dedicated brain area','Receptors spread throughout the body','Processing only by the hypothalamus','It is always unconscious'],'Notes, Part 1A table.',1),
+  so('sense','Vision','sp','Eye + visual cortex.'),
+  so('sense','Balance','sp','Inner ear + cerebellum.'),
+  so('sense','Taste','sp','Tongue + gustatory cortex.'),
+  so('sense','Proprioception','gen','General sense, slide 2.'),
+  so('sense','Pain','gen','General sense.'),
+  so('sense','Blood glucose and pH sensing in tissues','gen','Chemical sensing is a general sense, usually unconscious.'),
+  so('sense','Temperature','gen','Thermal = general sense.'),
+  so('area','Smell','olf','⭐ The only sense that skips the thalamus.',1),
+  so('area','Balance','cer','Notes: balance is processed in the cerebellum (helps with movement).',1),
+  so('area','Taste','ins','Gustatory cortex = anterior insula, hidden under frontal/parietal/temporal cortex.',1),
+  so('area','Hearing','aud','Auditory cortex.'),
+  so('area','Vision','vis','Visual cortex, occipital lobe.'),
+  T(mc('Which sense reaches its cortex WITHOUT passing through the thalamus?',['Smell','Vision','Taste','Hearing'],'⭐ She flagged it: smell bypasses the thalamus, which partly explains its strong link to memory and emotion.',1)),
+  T(mc('Why is smell so tightly linked to memory and emotion, according to her?',['It is the only sense that skips the thalamus, taking a more direct route','It is processed in the cerebellum','It uses the largest area of the homunculus','It is an unconscious general sense'],'⭐ Exam callout.',1)),
+  T(mc('Unconscious general senses (e.g. blood chemistry) are processed mainly in the:',['Hypothalamus','Somatosensory cortex','Hippocampus','Visual cortex'],'She said "hippocampus, sorry, hypothalamus." Hypothalamus is correct. Anything that reaches cortex becomes conscious.')),
+  T(mc('On the sensory homunculus the hand is huge and the trunk is small because:',['Cortical area reflects sensitivity (receptor density), not body size','The hand is physically bigger than the trunk','The trunk has no touch receptors','The hand is a special sense organ'],'⭐ Size on the map = sensitivity, not physical size.',1)),
+  T(mc('A student says the "eye" region on the somatosensory homunculus is where vision is processed. Why is that wrong?',['That region handles touch, pain or pressure FROM the eye; vision goes to the visual cortex','It is right; vision is a general sense','The eye region handles smell','Vision is processed in the insula'],'Notes, Part 1A.')),
+  T(mc('The slide says general senses "lack special organs or dedicated brain areas," yet conscious general senses go to the somatosensory cortex. How do you reconcile this?',['General senses share one body map instead of each having its own cortex','The somatosensory cortex is a special sense organ','General senses never reach cortex','The slide is about smell only'],'Accuracy note in her notes.')),
+  mc('The insular cortex mainly:',['Integrates raw sensations into derived feelings (internal state, pain unpleasantness, visceral sensations, emotions, taste)','Detects light','Controls eye movements','Relays all senses to cortex'],'Notes, insula table.',1),
+  T(mc('A person feels how UNPLEASANT a burn is, separate from where and how intense it is. Which area builds this feeling?',['Insular cortex','Primary somatosensory cortex','Superior colliculus','Lateral geniculate nucleus'],'The insula gives the discomfort side of pain, not the pain itself.',1)),
+  T(mc('Which of the following are TRUE about the insula?\nI. It integrates internal body state (interoception)\nII. It contains the gustatory cortex\nIII. It gives the exact temperature of an object\nIV. It integrates visceral sensations like a full bladder',['I, II, and IV','I and II','I, II, III, and IV','II and IV'],'III: it gives temperature COMFORT, not the exact temperature.',1)),
+  T(mc('What is her BIG message about vision?',['The eye only captures light; perception is an interpretation built by the brain','The eye produces the final image you see','The retina recognizes faces','The lens creates depth perception'],'⭐ Exam callout #1.',1)),
+  T(mc('The image formed on the retina is:',['Upside down and reversed; the brain corrects it','Right-side up','Already in 3D','Already colored and recognized'],'⭐ What your eye detects is not what you consciously see.',1)),
+  T(mc('Which is a job of the BRAIN, not the eye?',['Correcting the inverted image and combining both eyes into one 3D image','Refracting light','Focusing light onto the retina','Converting light to neural signals'],'The eye is the optical instrument; the brain is the image processor.')),
+  mt('Match each brain region to its visual job.',[['Occipital lobe (V1)','Edges, contrast, orientation'],['Temporal lobe','Object and face recognition'],['Parietal lobe','Spatial awareness, where things are'],['Superior colliculus','Eye movements and visual reflexes'],['Midbrain (pretectal)','Pupil reflex and circadian cues']],'Slide 4 table + notes.',1),
+  T(mc('A patient can see and describe a face’s features but cannot recognize who it is. Which lobe is most likely damaged?',['Temporal lobe','Parietal lobe','Occipital lobe (V1)','Superior colliculus'],'Temporal = "what": object and face recognition. (Applied.)',1)),
+  T(mc('A patient recognizes objects but cannot reach for them accurately or judge where they are in space. Which lobe is most likely damaged?',['Parietal lobe','Temporal lobe','Gustatory cortex','Cerebellum only'],'Parietal = "where": spatial awareness, visually guided actions. (Applied.)')),
+  T(mc('True or False: The superior colliculus is the main site of face recognition.',['False','True'],'Superior colliculus = eye movements, orienting to a moving object. Faces = temporal lobe.')),
+]);
+
+/* ---------- Stage 2 ---------- */
+STAGE('The eyeball wall','Three tunics, cornea, ciliary body, iris, special spots','P1B', [
+  od('Order the eyeball tunics from OUTSIDE to INSIDE.',['Fibrous tunic (sclera, cornea)','Vascular tunic / uvea (choroid, ciliary body, iris)','Neural tunic (retina)'],'Slide 5.',1),
+  so('tunic','Sclera','fib','Fibrous tunic.'),
+  so('tunic','Cornea','fib','Fibrous tunic: transparent front extension of the sclera.',1),
+  so('tunic','Choroid','vas','Vascular tunic.'),
+  so('tunic','Ciliary body','vas','Vascular tunic.',1),
+  so('tunic','Iris','vas','Vascular tunic. Easy to miss: the iris is NOT fibrous.',1),
+  so('tunic','Photoreceptors','neu','Neural tunic = retina.'),
+  T(mc('Which structure does MOST of the light bending (refraction)?',['Cornea','Lens','Vitreous humor','Iris'],'⭐ "Many students assume the lens does most focusing." It is the cornea.',1)),
+  T(mc('True or False: The lens does most of the refraction in the eye; the cornea only lets light in.',['False','True'],'⭐ Cornea does most of the bending. The lens fine-tunes focus (accommodation).',1)),
+  T(mc('A student recalls: 1. The cornea does most of the refraction. 2. The lens is part of the fibrous tunic. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'The lens is not part of the wall at all.',1)),
+  mc('The sclera’s functions include:',['Protection, keeping the eye’s shape, and attachment for external eye muscles','Producing aqueous humor','Bending most light','Supplying blood to the retina'],'The eye’s "structural shell."'),
+  T(mc('What are the TWO jobs of the ciliary body?',['Produce aqueous humor and control lens shape via the ciliary zonule','Supply blood to the retina and absorb stray light','Set pupil size and drain aqueous humor','Bend most light and protect the eye'],'⭐ Notes, Part 1B.',1)),
+  T(mc('Accommodation (focusing near vs far) is carried out by:',['Ciliary body pulling on the ciliary zonule to change lens shape','Iris changing pupil size','Cornea changing its curvature','Vitreous humor changing pressure'],'Ciliary body is a muscle under autonomic control.',1)),
+  T(mc('The ciliary body muscle is controlled by the:',['Autonomic nervous system','Somatic motor system','Cerebellum directly','Pituitary hormones'],'Notes: a muscle controlled by the autonomic nervous system.')),
+  T(mc('Which is TRUE about the pupil?',['It is a hole, not a structure; the iris sets its size','It is a muscle that contracts in light','It is part of the fibrous tunic','It produces aqueous humor'],'"The pupil is not a structure, it is a hole," like a camera aperture.')),
+  mc('The choroid’s main job is to:',['Supply oxygen and nutrients to the highly active retina','Bend light','Make aqueous humor','Drain fluid'],'A "gigantic capillary bedding."',1),
+  T(mc('Why does the retina need such a rich blood supply from the choroid?',['It is metabolically super active','It has no cells','It produces vitreous humor continuously','It bends most light'],'Notes, Part 1B.')),
+  mt('Match each retinal spot to its description.',[['Macula lutea','Central detailed vision (~5.5 mm)'],['Fovea centralis','Highest acuity, center of the macula (~1.5 mm)'],['Optic disc','Nerves and vessels exit; blind spot']],'Slide 5 + notes.',1),
+  T(mc('Why is the optic disc a blind spot?',['It has no photoreceptors','It has only rods','It is covered by the lens','It has too many cones'],'⭐ The hole where nerves and vessels enter and leave.',1)),
+  T(mc('Where is visual acuity HIGHEST?',['Fovea centralis','Macula lutea as a whole','Optic disc','Ora serrata'],'Near miss: the fovea is the center of the macula, and its acuity is highest.',1)),
+  T(mc('Which of the following are TRUE?\nI. The sclera attaches the external eye muscles\nII. The iris belongs to the vascular tunic\nIII. The lens is part of the neural tunic\nIV. The cornea is a transparent extension of the sclera',['I, II, and IV','I and IV','II, III, and IV','I, II, III, and IV'],'III: the lens is not part of the wall.',1)),
+  T(mc('Which pairing is correct?',['Iris → pupil size','Ciliary body → most refraction','Choroid → lens shape','Cornea → aqueous humor production'],'Ciliary body = aqueous + lens shape; cornea = refraction; choroid = blood.')),
+  T(mc('To read small print, you move your eyes so the image falls on the:',['Fovea','Optic disc','Peripheral retina','Ora serrata'],'"To see detail, you aim the object here."')),
+]);
+
+/* ---------- Stage 3 ---------- */
+STAGE('Fluids and chambers','Aqueous vs vitreous, circulation, glaucoma','P1B', [
+  T(mc('The anterior cavity is made of:',['Anterior chamber + posterior chamber, both filled with aqueous humor','Anterior chamber only, filled with vitreous','Posterior chamber + vitreous body','Space behind the lens'],'Key points slide. Trap: the POSTERIOR CHAMBER belongs to the ANTERIOR cavity.',1)),
+  T(mc('Where is the posterior CHAMBER?',['Between the iris and the lens','Behind the lens','Between the cornea and the iris','Between the retina and choroid'],'⭐ Classic name trap: posterior chamber ≠ posterior cavity.',1)),
+  mc('Where is the anterior chamber?',['Between the cornea and the iris','Between the iris and the lens','Behind the lens','Inside the lens'],'Slide 6.'),
+  T(mc('True or False: The posterior chamber is filled with vitreous humor.',['False','True'],'Posterior chamber is part of the anterior cavity → aqueous humor. Vitreous fills the posterior CAVITY.',1)),
+  so('fluid','Regulates intraocular pressure','aq','Anterior chamber function.'),
+  so('fluid','Feeds the cornea and lens','aq','Slide 6.'),
+  so('fluid','Gel-like, not continuously replaced','vit','Slide 6.',1),
+  so('fluid','Presses the retina against the back of the eye','vit','Her dissection story.',1),
+  so('fluid','Continuously produced and drained','aq','Unlike vitreous.'),
+  so('fluid','Absorbs shock','vit','Slide 6.'),
+  so('fluid','Made by filtration from capillaries in the ciliary processes','aq','Step 1 of circulation.'),
+  od('Order the path of aqueous humor.',['Filtered from capillaries in the ciliary processes','Enters the posterior chamber','Flows through the pupil into the anterior chamber','Drains into venous blood via the scleral venous sinus (canal of Schlemm)'],'Slide 6, 3 steps.',1),
+  T(mc('Aqueous humor reaches the anterior chamber by flowing:',['Through the pupil','Through the lens','Through the cornea','Through the vitreous only'],'Step 2.',1)),
+  T(mc('A patient’s scleral venous sinus is blocked. What happens?',['Aqueous builds up, intraocular pressure rises → glaucoma','Vitreous is lost and the retina detaches immediately','The lens stops accommodating','The cornea stops refracting'],'⭐ Blocked drainage → glaucoma.',1)),
+  T(mc('A drug greatly reduces aqueous humor production by the ciliary processes. What is the expected effect?',['Intraocular pressure falls (useful in glaucoma), but the cornea and lens get less nourishment','Vitreous humor is drained','The retina is pulled off the back wall','Pupil constricts'],'Applied prediction from the 3-step circulation and the anterior chamber’s jobs.')),
+  T(mc('In her dissection of a fresh human eye, removing the vitreous made the retina "drip down." What does this show?',['Vitreous pressure holds the retina against the back wall','Vitreous nourishes the retina','The retina is attached only at the cornea','Aqueous humor holds the retina'],'Notes, Part 1B.',1)),
+  T(mc('Her summary of the two fluids is:',['Front: circulating fluid for pressure + nourishment. Back: stable gel for structure + retinal alignment','Front: stable gel. Back: circulating fluid','Both are continuously replaced','Both nourish the retina directly'],'Notes, Part 1B summary.',1)),
+  T(mc('Which structure provides nutrients and oxygen to the eye? Choose all that apply. (In-lecture Q)',['Choroid and ciliary process','Choroid only','Choroid, retina and vitreous','Sclera and ciliary process'],'⭐ B and E. Retina NEEDS nutrients; vitreous isn’t replaced; sclera is structural.',1)),
+  T(mc('Why is the RETINA a wrong answer to "which structure provides nutrients to the eye"?',['It is neural tissue that needs nutrients; it can’t supply them','It has no blood vessels anywhere','It is outside the eye','It produces aqueous humor'],'Her reasoning for option D.')),
+  T(mc('Why is the ciliary process a correct answer for nutrient supply?',['It makes aqueous humor, which brings nutrients and O₂ to the front of the eye','It is part of the retina','It contains the photoreceptors','It drains blood'],'Her reasoning for option E.')),
+  T(mc('Which statement is FALSE?',['Vitreous humor is continuously produced and drained, like aqueous humor','Aqueous humor drains via the canal of Schlemm','Vitreous humor maintains the eyeball’s shape','Aqueous humor regulates intraocular pressure'],'Slide 6: vitreous is NOT continuously produced or drained.',1)),
+  T(mc('Which of the following are TRUE?\nI. Aqueous humor is produced in the posterior chamber region\nII. Vitreous fills the posterior cavity\nIII. The posterior chamber lies behind the lens\nIV. Blocked aqueous drainage raises intraocular pressure',['I, II, and IV','I and II','II, III, and IV','I, II, III, and IV'],'III: posterior chamber is between iris and lens.',1)),
+]);
+
+/* ---------- Stage 4 ---------- */
+STAGE('Inside the retina','Cell types, rods vs cones, macula and fovea','P2A', [
+  T(mc('Light entering the eye reaches which retinal cells LAST?',['Photoreceptors','Ganglion cells','Bipolar cells','Amacrine cells'],'⭐ Photoreceptors sit at the very back; light passes through the other layers first.',1)),
+  od('Order the signal through the retina (direct path).',['Photoreceptor','Bipolar cell','Ganglion cell','Optic nerve'],'Notes table.',1),
+  mt('Match each retinal cell to its job.',[['Bipolar cell','Relays photoreceptor → ganglion; begins contrast processing'],['Ganglion cell','Axons form the optic nerve'],['Horizontal cell','Lateral links between photoreceptors; edge detection'],['Amacrine cell','Lateral links between bipolar and ganglion cells; motion'],['RPE','Absorbs stray light, recycles retinal']],'Slide 10.',1),
+  T(mc('Which cells’ axons form the optic nerve?',['Ganglion cells','Bipolar cells','Photoreceptors','Horizontal cells'],'Near miss: bipolar cells relay, ganglion cells send axons out.',1)),
+  T(mc('Horizontal cells make lateral connections between:',['Photoreceptors','Bipolar and ganglion cells','Ganglion cells and the LGN','RPE and choroid'],'Memory hook: Horizontal = high up next to photoreceptors. Amacrine = after bipolar, next to ganglion.',1)),
+  T(mc('Amacrine cells make lateral connections between:',['Bipolar and ganglion cells','Photoreceptors','Rods and cones only','RPE and photoreceptors'],'Amacrine = motion detection, temporal tuning.',1)),
+  T(mc('Which retinal cell type is mainly involved in MOTION detection?',['Amacrine cells','Horizontal cells','Rods','RPE cells'],'Horizontal = contrast/edges. Amacrine = motion.')),
+  T(mc('Which retinal cell type is EPITHELIAL, not neural?',['Retinal pigment epithelium (RPE)','Horizontal cell','Amacrine cell','Bipolar cell'],'Notes: epithelial, at the very back, in direct contact with photoreceptors.')),
+  T(mc('A student recalls: 1. Horizontal cells sharpen signals by lateral inhibition. 2. Amacrine cells link photoreceptors to each other. Which is accurate?',['Statement 1 is accurate; statement 2 is not, which describes horizontal cells','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'Amacrine cells link bipolar and ganglion cells.',1)),
+  mt('Rods vs cones.',[['Rods','Dim light, no color, rhodopsin'],['Cones','Bright light, color, cone opsin']],'Slide 10 + notes.',1),
+  T(mc('In a dark room you can see shapes but not colors. Which photoreceptors are working?',['Rods','Cones','Both equally','Neither; only ganglion cells'],'Rods: dim light, no color.',1)),
+  T(mc('True or False: The fovea contains mostly rods with a few cones.',['False','True'],'⭐ Fovea = ONLY cones, no rods. Macula = many cones, few rods.',1)),
+  T(mc('Which is TRUE about the fovea?',['Only cones, avascular, and inner layers pushed aside so light hits cones directly','Many rods for night vision','The blind spot','Where the optic nerve exits'],'Slide 10.',1)),
+  T(mc('Why is the fovea AVASCULAR?',['To minimize light scattering','Because it has no cells','Because it is the blind spot','To store vitreous humor'],'Slide 10: avascular to minimize light scattering.')),
+  T(mc('Which pairing is correct?',['Macula → high cone concentration, few rods','Macula → only rods','Fovea → highest rod density','Optic disc → highest acuity'],'Fovea is the cones-only center of the macula.')),
+  T(mc('Which of the following are TRUE?\nI. Rods use rhodopsin\nII. Cones are longer than rods\nIII. The fovea has no rods\nIV. Ganglion cells receive input from bipolar and amacrine cells',['I, III, and IV','I and III','I, II, and III','I, II, III, and IV'],'II: cones are SHORTER (possibly one reason the fovea is a depression).',1)),
+  T(mc('Why might the fovea be a depression (pit)?',['Inner layers are displaced and cones are shorter','It has extra rods stacked','It is filled with aqueous humor','It is the optic disc'],'Notes, Part 2A.')),
+]);
+
+/* ---------- Stage 5 ---------- */
+STAGE('Photoreceptor and rhodopsin','5 parts, ciliary gate, disc building, 11-cis-retinal','P2B', [
+  mt('Match each photoreceptor part to its job.',[['Outer segment','Light sensing; stacked discs with rhodopsin'],['Connecting cilium','Only bridge IS → OS; directional transport'],['Inner segment','Protein and lipid synthesis'],['Cell body','Nucleus: gene transcription'],['Synaptic terminal','Releases glutamate onto bipolar cells']],'Slide 11.',1),
+  T(mc('Why are the outer segment membranes stacked into discs?',['More membrane = more pigment to catch photons','To store glutamate','To make ATP','To block light'],'Notes, Part 2B.')),
+  T(mc('Where are the outer segment’s proteins and lipids made?',['Inner segment','Outer segment','Synaptic terminal','RPE'],'All building material comes from the IS.',1)),
+  T(mc('How often is the outer segment renewed, and why?',['About every 10 days, because it reacts with light constantly and makes toxic molecules','Never; it lasts for life','Every hour, due to glutamate release','Every year, during sleep'],'⭐ Notes, Part 2B.',1)),
+  T(mc('Why are photoreceptors "not strictly neurons"?',['They don’t fire action potentials; they release transmitter based on light or dark','They have no synapses','They are epithelial cells','They have no membrane potential'],'⭐ Notes. Only ganglion cells fire APs to the brain.',1)),
+  mt('Connecting cilium zones.',[['Basal body (BB)','From the mother centriole; anchors the cilium'],['Transition zone (TZ)','Selective "ciliary gate" barrier'],['Distal axoneme (DA)','Microtubule highway and disc scaffold']],'Slide 11.',1),
+  T(mc('Which zone of the connecting cilium acts as the "ciliary gate"?',['Transition zone','Basal body','Distal axoneme','Synaptic terminal'],'TZ seals the cilium to the membrane; blocks free diffusion.',1)),
+  T(mc('The basal body is derived from the:',['Mother centriole','Golgi apparatus','Nucleus','Outer segment discs'],'Centrioles are the "seed" that microtubules grow from.')),
+  T(mc('Why not connect the inner and outer segments directly instead of through a cilium?',['What enters the outer segment must be heavily regulated','The cilium makes ATP','It would block light','The OS has no membrane'],'Notes, Part 2B.')),
+  T(mc('A mutation disables the transition zone. Which outcome is MOST expected?',['Wrong molecules enter (or leak out of) the outer segment; disc building and light sensing suffer','Photoreceptors fire action potentials','The RPE stops making melanin','More rhodopsin is made in the outer segment itself'],'TZ = selective barrier. (Applied prediction.)')),
+  od('Order disc formation.',['Proteins made in the inner segment and packed into vesicles','Vesicles fuse with the ciliary membrane at the base','Intraflagellar transport moves proteins up the axoneme','Proteins built into new discs at the base of the outer segment','New discs move distally; in rods they seal off'],'Slide 11, 5 steps.',1),
+  T(mc('Where are NEW discs added?',['At the base of the outer segment; they move toward the tip','At the tip; they move toward the base','In the inner segment','In the RPE'],'Old discs at the tip get removed by the RPE.',1)),
+  T(mc('Rhodopsin is made of:',['Opsin (a GPCR protein) + 11-cis-retinal (chromophore)','Opsin + all-trans-retinol','Transducin + cGMP','Melanin + retinal'],'Slide 12.',1)),
+  T(mc('Which directly absorbs photons of light? (In-lecture Q)',['11-cis-retinal','Opsin','all-trans-retinal','Membrane stack'],'⭐ D. Opsin is the host; all-trans is the PRODUCT; the membrane just holds pigment.',1)),
+  T(mc('True or False: Opsin absorbs light and then activates retinal.',['False','True'],'Reversed. Retinal absorbs light; that flip activates opsin. Key-in-lock analogy.',1)),
+  T(mc('Why is all-trans-retinal a WRONG answer for "which directly absorbs photons"?',['It is the product formed after absorption','It is a protein','It is in the RPE only','It is a neurotransmitter'],'Her reasoning.')),
+  T(mc('What does light physically do to retinal?',['Flips it from 11-cis (groups same side) to all-trans (opposite sides)','Breaks it into two pieces','Adds a phosphate to it','Moves it to the inner segment'],'Photoisomerization.',1)),
+  T(mc('Her "key" analogy for rhodopsin means:',['Retinal is a key in the opsin lock; light turns the key, which turns on the opsin','Opsin is a key that unlocks retinal','Light is the lock','Glutamate is the key'],'Notes, Part 2B.')),
+  T(mc('Opsin belongs to which receptor family?',['G protein-coupled receptor','Ligand-gated ion channel','Voltage-gated channel','Receptor tyrosine kinase'],'Connects to Lec 17: SCFAs act through GPCRs too (GPR41/43).',1)),
+  T(mc('Retinal is bound to opsin via a:',['Schiff base','Disulfide bridge','Hydrogen bond only','Peptide bond'],'Slide 12.')),
+  T(mc('Which pairing is correct?',['Rods → rhodopsin; cones → cone opsin','Rods → cone opsin; cones → rhodopsin','Both → melanin','Rods → transducin; cones → PDE'],'Slide 12.')),
+]);
+
+/* ---------- Stage 6 ---------- */
+STAGE('Dark vs light','Phototransduction, cGMP, glutamate, amplification','P2B', [
+  so('dl','cGMP level is high','dark','Dark table.',1),
+  so('dl','Phosphodiesterase (PDE) is active','light','PDE degrades cGMP in light.',1),
+  so('dl','Photoreceptor is depolarized','dark','⭐ Counterintuitive.',1),
+  so('dl','Glutamate is released','dark','⭐ Darkness = glutamate released.',1),
+  so('dl','Voltage-gated Ca²⁺ channels close','light','Less Ca²⁺ → no exocytosis.'),
+  so('dl','Transducin is active','light','Opsin → transducin → PDE.'),
+  so('dl','cGMP-gated Na⁺ channels open, Na⁺ flows in','dark','High cGMP holds them open.'),
+  so('dl','Photoreceptor is hyperpolarized','light','Light stops all the activity.'),
+  od('Order the cascade when light hits.',['11-cis-retinal → all-trans; opsin active','Transducin activated','PDE activated','cGMP falls','cGMP-gated Na⁺ channels close','Hyperpolarization; Ca²⁺ channels close; glutamate release stops'],'Slide 14.',1),
+  T(mc('In darkness, photoreceptors are depolarized primarily because: (In-lecture Q)',['cGMP-gated Na⁺ channels remain open','Voltage-gated Na⁺ channels remain open','Calcium channels are inhibited','Phosphodiesterase activity is high'],'⭐ B. Ligand (cGMP)-gated, not voltage-gated. Ca²⁺ channels are OPEN and PDE is INACTIVE in darkness.',1)),
+  T(mc('True or False: Light depolarizes photoreceptors, causing them to release glutamate.',['False','True'],'⭐ Light HYPERPOLARIZES → no glutamate. (Her opsin slide wording says "rod depolarization"; she corrected it.)',1)),
+  T(mc('She summarizes phototransduction as:',['A lot happens in darkness, and light STOPS these activities','Nothing happens in darkness; light starts everything','Light increases glutamate','Darkness hyperpolarizes'],'⭐ Notes, Part 2B.',1)),
+  T(mc('Which enzyme does light activate to lower cGMP?',['Phosphodiesterase (PDE)','Guanylyl cyclase','Adenylyl cyclase','LRAT'],'Slide 14.',1)),
+  T(mc('What neurotransmitter do photoreceptors release?',['Glutamate','GABA','Acetylcholine','Dopamine'],'Slide 14.')),
+  T(mc('Why does one photon produce a large signal?',['PDE is an enzyme, so a few activated PDE molecules destroy many cGMP','One photon opens thousands of Na⁺ channels directly','Photons trigger action potentials','Glutamate is amplified by the RPE'],'⭐ Slide 22: "even a small activation of PDE by a single photon can cause a substantial decrease in cGMP." Microphone + amplifier.',1)),
+  T(mc('A drug blocks PDE in a photoreceptor. When light shines on it:',['cGMP stays high, channels stay open, the cell stays depolarized and keeps releasing glutamate (weak light response)','cGMP falls faster','The cell hyperpolarizes more strongly','Glutamate release stops completely'],'Applied prediction from the dark/light table.',1)),
+  T(mc('A toxin blocks the cGMP-gated Na⁺ channels in a photoreceptor sitting in DARKNESS. What happens?',['It hyperpolarizes and stops releasing glutamate, as if it were in light','It depolarizes further','It fires action potentials','cGMP falls'],'Without Na⁺ influx the dark current is gone. (Applied prediction.)',1)),
+  T(mc('A drug blocks voltage-gated Ca²⁺ channels at the photoreceptor terminal in darkness. What happens?',['Glutamate release drops even though the cell is still depolarized','The cell hyperpolarizes','cGMP falls','PDE becomes active'],'Ca²⁺ influx triggers exocytosis (same as any terminal). (Applied.)')),
+  T(mc('A student recalls: 1. In darkness, PDE is inactive so cGMP stays high. 2. In light, voltage-gated Ca²⁺ channels open and glutamate is released. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'In light Ca²⁺ channels CLOSE; no glutamate.',1)),
+  T(mc('Which of the following are TRUE in DARKNESS?\nI. Transducin is inactive\nII. cGMP is low\nIII. Ca²⁺ enters the terminal\nIV. Glutamate is released',['I, III, and IV','I and IV','II, III, and IV','I, II, III, and IV'],'II: cGMP is HIGH in darkness.',1)),
+  T(mc('Which channel type is the cGMP-gated Na⁺ channel, and which is the terminal Ca²⁺ channel?',['Ligand-gated; voltage-gated','Voltage-gated; ligand-gated','Both voltage-gated','Both ligand-gated'],'Links to Lec 7 channel types.',1)),
+  T(mc('After light hyperpolarizes a photoreceptor, what restores the resting potential?',['Na⁺/K⁺ pump and leak channels','cGMP-gated Ca²⁺ channels','Glutamate','Transducin'],'Notes dark/light table.')),
+]);
+
+/* ---------- Stage 7 ---------- */
+STAGE('Visual cycle and RPE','Recycling retinal, A2E, 7 RPE jobs','P2C', [
+  T(mc('Why is a visual cycle needed? (2 reasons)',['all-trans-retinal is stuck in opsin and must be reset, and it is toxic if it builds up','To make glutamate and GABA','To produce aqueous humor','To make melanin for the iris'],'⭐ Notes, Part 2C.',1)),
+  od('Order the big-picture visual cycle.',['Photobleaching: rhodopsin phosphorylated, all-trans-retinal released','all-trans-retinal → all-trans-retinol in the photoreceptor','Transported to RPE via IRBP','Converted to 11-cis-retinal in the RPE','Returned to photoreceptor via IRBP','11-cis-retinal + opsin → rhodopsin (dark adaptation)'],'Slide 17 (enzyme details not required).',1),
+  so('cyc','all-trans-retinal → all-trans-retinol','pr','Step 2: detoxifies it and prepares it for shipping.',1),
+  so('cyc','Conversion to 11-cis-retinal','rpe','Steps 4–6.',1),
+  so('cyc','Facilitated diffusion by IRBP','tr','Steps 3 and 7.'),
+  so('cyc','11-cis-retinal + opsin → rhodopsin','pr','Step 8.'),
+  so('cyc','Activated rhodopsin is phosphorylated and inactivated','pr','Step 1: photobleaching.'),
+  T(mc('What is photobleaching?',['After light activates rhodopsin, it is phosphorylated, inactivated, and all-trans-retinal dissociates','Melanin breakdown by bright light','Loss of cones in the fovea','RPE eating discs'],'Step 1.',1)),
+  T(mc('Converting all-trans-retinAL to all-trans-retinOL ("A becomes O") serves to:',['Detoxify it and prepare it for transport','Make it absorb light again','Turn it into 11-cis','Activate transducin'],'Notes step 2.')),
+  T(mc('What is IRBP’s role?',['Carries retinoids between photoreceptor and RPE by facilitated diffusion, both directions','Converts all-trans to 11-cis','Forms the blood–retina barrier','Pumps Na⁺ out'],'Interphotoreceptor retinoid-binding protein, steps 3 and 7.',1)),
+  T(mc('For the exam, what do you need to know about steps 4–6 in the RPE (LRAT, RPE65)?',['Only the big picture: all-trans goes in, 11-cis comes out','Every enzyme and intermediate in order','Only RPE65','Nothing about the cycle'],'⭐ "I don’t really need you to remember the details."',1)),
+  T(mc('What is dark adaptation?',['Gradual recovery of sensitivity as rhodopsin is regenerated after photobleaching','Pupil constriction in bright light','Cones taking over in darkness','The ON pathway turning off'],'Slide 17 step 8.',1)),
+  T(mc('A patient’s RPE cannot regenerate 11-cis-retinal. What would they MOST notice?',['Very slow or failed recovery of vision after bright light, especially poor vision in dim light','Better night vision','Faster dark adaptation','No change; photoreceptors make it themselves'],'No visual cycle → photoreceptors stay bleached. (Applied.)',1)),
+  T(mc('What is A2E?',['A toxic byproduct formed from retinoids during the visual cycle','A rhodopsin enzyme','A growth factor','A pigment that absorbs stray light'],'Slide 17.',1)),
+  T(mc('How does the RPE handle A2E?',['Phagocytoses shed outer segment discs daily and sequesters A2E in lysosomes','Pumps it into the vitreous','Converts it back to 11-cis-retinal','Releases it into the optic nerve'],'⭐ Notes.',1)),
+  T(mc('Which of the following are the RPE’s jobs?\nI. Melanin absorbs stray light\nII. Makes opsin protein for photoreceptors\nIII. Forms the outer blood–retina barrier with tight junctions\nIV. Secretes VEGF and PEDF',['I, III, and IV','I, II, and III','I and III','I, II, III, and IV'],'II: opsin is made by the photoreceptor. RPE recycles retinal.',1)),
+  T(mc('Why does the retina need the RPE for nutrients?',['Retinal neurons have no direct blood supply on that side; RPE moves glucose, vitamin A, O₂ and ions from the choroid','The RPE makes glucose','The vitreous is the blood supply','Photoreceptors feed the RPE'],'RPE is the middleman between choroid and retina.')),
+  T(mc('Why does the retina need a blood–retina barrier?',['The retina is an extension of the brain and, like the BBB, needs separation from blood','To keep aqueous humor out','To block light','To store A2E'],'Notes.')),
+  T(mc('RPE melanin is compared to:',['A dark movie theater: absorbs stray light so it doesn’t blur the image','A camera aperture','A microphone','A key in a lock'],'Notes.')),
+  T(mc('Why can RPE damage lead to vision loss? Choose all that apply. (In-lecture Q)',['C and E: recycles retinal + phagocytoses outer segments; nutrients + oxidative protection','A and C: produces rhodopsin; recycles retinal','B and D: supports optic nerve; controls lens','C only'],'⭐ A is false (it doesn’t make rhodopsin). B: not optic nerve support. D: that’s the ciliary body.',1)),
+  T(mc('Which statement is FALSE?',['The RPE produces rhodopsin for light absorption','The RPE regenerates 11-cis-retinal','The RPE defends photoreceptors against oxidative stress','The RPE forms the outer blood–retina barrier'],'In-lecture option A.',1)),
+  T(mc('She said many vision diseases are actually:',['RPE problems, not really retina problems','Lens problems','Cornea problems','Optic chiasm problems'],'⭐ Notes.')),
+  T(mc('Which side of the RPE faces the choroid, and which interdigitates with outer segments?',['Basal side faces choroid; apical microvilli interdigitate with outer segments','Apical faces choroid; basal faces outer segments','Both sides face the choroid','Neither touches the photoreceptors'],'Epithelial polarity, links to Lec 2.')),
+]);
+
+/* ---------- Stage 8 ---------- */
+STAGE('ON, OFF and lateral inhibition','Bipolar circuits, breaking the circuit, horizontal cells','P3A', [
+  T(mc('ON and OFF refer to:',['Lights ON and lights OFF: when that pathway is excited','Whether the bipolar cell is alive','Whether glutamate is on or off','Whether the ganglion cell has an axon'],'⭐ Naming rule.',1)),
+  T(mc('Why do ON and OFF bipolar cells respond OPPOSITELY to the same glutamate?',['They have different glutamate receptors','They receive different neurotransmitters','One gets GABA instead','One connects to rods only'],'Slide 23.',1)),
+  mt('Effect of glutamate on each bipolar cell.',[['OFF-center bipolar','Depolarized (excited) by glutamate'],['ON-center bipolar','Hyperpolarized (inhibited) by glutamate']],'⭐ Notes.',1),
+  so('path','Darkness','off','More glutamate excites OFF bipolar.',1),
+  so('path','Light increase','on','Less glutamate releases ON bipolar from inhibition.',1),
+  so('path','A light is switched off in the receptive field','off','OFF = lights off.'),
+  so('path','A spot of light is turned on in the center','on','ON = lights on.'),
+  T(mc('When light strikes a photoreceptor connected to an ON-center pathway, the ganglion cell will: (In-lecture Q)',['Increase firing','Decrease firing','Stop signaling completely','Become hyperpolarized'],'⭐ B. A, C and D "are saying the same thing."',1)),
+  T(mc('In DARKNESS, the OFF-center ganglion cell:',['Fires strongly','Is silent','Is hyperpolarized by glutamate','Releases GABA'],'Dark → more glutamate → OFF bipolar excited → OFF ganglion fires.',1)),
+  T(mc('In DARKNESS, the ON-center bipolar cell is:',['Inhibited (hyperpolarized) by glutamate, so it releases little transmitter','Excited by glutamate','Firing action potentials','Releasing GABA'],'She mixed this up mid-lecture, then corrected: OFF is the excited one in darkness.',1)),
+  T(mc('True or False: In darkness the ON-center bipolar cell is excited because photoreceptors release more glutamate.',['False','True'],'More glutamate INHIBITS ON bipolars. It excites OFF bipolars.',1)),
+  T(mc('The ON-center bipolar cell is DAMAGED. What happens when a light is turned on?',['The ON ganglion fails to increase firing; light increases are poorly signaled, but the OFF pathway still signals darkness','Nothing changes because OFF compensates fully','The OFF ganglion fires more in light','The photoreceptor stops hyperpolarizing'],'⭐ She said she’ll test by breaking the circuit. Redraw it and reason.',1)),
+  T(mc('The OFF-center ganglion cell is DAMAGED. Which change would the brain have trouble detecting?',['A decrease in light (things going dark)','An increase in light','Color','Light in the opposite eye'],'⭐ OFF pathway signals darkness/decreases. ON still works for increases.',1)),
+  T(mc('A drug blocks the glutamate receptors on OFF-center bipolar cells. In DARKNESS, the OFF ganglion cell will:',['Be much less active, because the OFF bipolar can’t be excited','Fire more strongly','Behave like an ON ganglion in light','Not change'],'Applied circuit-break.',1)),
+  T(mc('A drug blocks the glutamate receptors on ON-center bipolar cells. In DARKNESS, the ON bipolar cell will:',['Lose its glutamate inhibition, so it becomes more active, as if the light were on','Stay just as inhibited','Release GABA','Fire action potentials'],'Glutamate normally inhibits ON bipolars; remove the effect and they are disinhibited. (Applied, trap.)',1)),
+  T(mc('Which retinal cells fire ACTION POTENTIALS to the brain?',['Ganglion cells','Photoreceptors','Bipolar cells','Horizontal cells'],'Photoreceptors/bipolars use graded potentials.',1)),
+  T(mc('Why have BOTH ON and OFF pathways instead of one?',['One pathway hits zero firing and can’t signal past it; two give a larger dynamic range and sensitivity in dim and bright light','To double the number of photoreceptors','So each eye has its own pathway','To send color and shape separately'],'⭐ Notes, "Why two pathways?"',1)),
+  T(mc('A student recalls: 1. The retina encodes CHANGES in light through parallel ON and OFF pathways. 2. With only an OFF pathway, firing would rise without limit as light increases. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'With only OFF, firing FALLS as light rises until it hits zero.',1)),
+  T(mc('Which of the following are TRUE?\nI. Each photoreceptor connects to two bipolar cells\nII. OFF bipolar cells are depolarized by glutamate\nIII. Ganglion cells are inhibited by bipolar glutamate\nIV. ON ganglion cells fire faster when light increases',['I, II, and IV','I and II','II, III, and IV','I, II, III, and IV'],'III: ganglion cells respond the SAME way (excited) to bipolar glutamate.',1)),
+  od('Lateral inhibition (center lit, surround dark). Put the steps in order.',['Surround photoreceptors in dark release glutamate','Glutamate excites the horizontal cell','Horizontal cell releases GABA onto the center photoreceptor','Center photoreceptor hyperpolarizes even more','Center releases less glutamate','ON bipolar and ganglion are super-activated: bright center looks brighter'],'⭐ Slide 25 circuit.',1),
+  T(mc('Activation of surround photoreceptors in darkness causes horizontal cells to: (In-lecture Q)',['Increase inhibitory feedback to the center photoreceptor','Reduce GABA release','Activate ON bipolar cells directly','Close Na⁺ channels in ganglion cells'],'⭐ B. C is the trap: it does activate ON bipolars, but INDIRECTLY.',1)),
+  T(mc('Why is "activate ON bipolar cells directly" wrong for horizontal cells?',['Horizontal cells link photoreceptor to photoreceptor; they have no direct connection to bipolar cells','They inhibit ON bipolars','They connect only to ganglion cells','They never affect the ON pathway'],'The effect is real but indirect.',1)),
+  T(mc('GABA from horizontal cells onto a center photoreceptor acts:',['As if MORE light hit the center','As if the center were darker','To depolarize the center','To excite OFF bipolars more'],'⭐ "GABA = more light to the center."',1)),
+  T(mc('The SURROUND photoreceptors are in bright light. What do the horizontal cells do?',['Nothing much: surround releases no glutamate, so no GABA is released','Release maximal GABA','Release glutamate onto bipolars','Excite the center photoreceptor'],'⭐ Lateral inhibition only works with surround in dark and center in light.',1)),
+  T(mc('A drug blocks GABA receptors on the center photoreceptors. What is lost?',['Contrast enhancement: a bright spot on a dark background no longer looks extra bright','All light detection','The OFF pathway only','Color vision'],'Applied circuit-break.',1)),
+  T(mc('In her gray-block demo, one uniform gray block looks lighter on the dark end of a gradient. This shows:',['The visual system exaggerates contrast to find edges (lateral inhibition)','The block really changes color','Rods and cones see different colors','The lens bends light differently'],'Notes, Part 3A demo.')),
+  T(mc('True or False: Horizontal cells mainly fire action potentials to the optic nerve.',['False','True'],'Horizontal cells use graded potentials and stay inside the retina (she said "fire" loosely).')),
+]);
+
+/* ---------- Stage 9 ---------- */
+STAGE('Pathway, chiasm and pupil','Retina → V1, field loss, pupillary reflex','P3B', [
+  od('Order the visual pathway.',['Retina','Optic nerve (CN II)','Optic chiasm','Optic tract','LGN (thalamus)','Optic radiations','Primary visual cortex (V1)'],'Slide 27, 7 stations.',1),
+  T(mc('What is the difference between the optic NERVE and optic TRACT?',['Nerve is before the chiasm (one eye); tract is after (opposite visual field from both eyes)','They are the same structure','Tract is before the chiasm','Nerve goes from LGN to cortex'],'⭐ Name trap.',1)),
+  T(mc('At the optic chiasm, which fibers cross?',['Only nasal retinal fibers','Only temporal retinal fibers','All fibers','No fibers'],'⭐ Slide 28.',1)),
+  T(mc('The nasal retina sees which part of the visual field?',['The temporal (outer, peripheral) field on that side','The nasal (central) field','The upper field only','Nothing; it is the blind spot'],'Light crosses through the pupil.',1)),
+  T(mc('Why does the left visual field from BOTH eyes go to the RIGHT brain?',['Nasal fibers of the left eye cross; temporal fibers of the right eye stay on the right','All fibers cross','The LGN swaps them','Temporal fibers cross'],'⭐ Draw the chiasm with the book closed.',1)),
+  T(mc('The central (2x) part of the visual field is special because:',['Both eyes see it → binocular vision, depth perception, spatial accuracy','Only one eye sees it','It has no photoreceptors','It goes only to the superior colliculus'],'Slide 28.',1)),
+  T(mc('The far peripheral (1x) field is seen by:',['Only one eye’s nasal retina','Both eyes’ temporal retinas','The fovea','The optic disc'],'No backup from the other eye.')),
+  T(mc('A tumor presses on the CENTRAL optic chiasm. What explains the deficit? (In-lecture Q)',['Damage to nasal retinal fibers, causing loss of peripheral vision in both eyes','Damage to temporal retinal fibers, causing loss of central vision in both eyes','Damage to the right optic tract, causing complete loss of vision in the left eye','Damage to the optic nerves bilaterally, causing total blindness'],'⭐ B. Bitemporal hemianopia.',1)),
+  T(mc('Why does a pituitary tumor typically spare CENTRAL vision?',['The temporal (uncrossed) fibers of both eyes still carry the central field','The fovea has its own nerve','The pituitary is behind the LGN','Central vision doesn’t use the retina'],'Notes.')),
+  T(mc('A patient describes "tunnel vision": straight ahead is fine but side vision is gone in both eyes. Where is the lesion most likely?',['Optic chiasm (crossing fibers), e.g., a pituitary tumor','Right optic nerve','Left optic tract','Primary visual cortex on one side'],'Bitemporal hemianopia.',1)),
+  T(mc('The RIGHT optic NERVE is completely cut. What is the deficit?',['Blindness in the right eye only','Loss of the left visual field in both eyes','Loss of peripheral vision in both eyes','Total blindness'],'The nerve carries one eye. (Applied.)',1)),
+  T(mc('The RIGHT optic TRACT is cut. What is the deficit?',['Loss of the LEFT visual field in both eyes','Complete loss of vision in the left eye','Blindness in the right eye','Loss of peripheral vision in both eyes'],'Tract carries the opposite field from both eyes. In-lecture option C ("loss of left eye") is the trap. (Self-check item.)',1)),
+  T(mc('The optic radiations: which part carries the UPPER visual field?',['Temporal portion','Parietal portion','Frontal portion','Cerebellar portion'],'Slide 27: parietal = lower field, temporal = upper field.',1)),
+  T(mc('A lesion hits the parietal part of the right optic radiation. Which field is affected?',['Lower part of the LEFT visual field','Upper part of the left visual field','Lower part of the right field','Whole right eye'],'Parietal = lower; right side = left field. (Applied.)')),
+  T(mc('Which statement is FALSE?',['The LGN is in the hypothalamus','The LGN is a relay in the thalamus','V1 processes edges, movement and orientation','The cortex keeps a topographic map of the visual field'],'LGN = lateral geniculate nucleus of the THALAMUS.')),
+  mt('Iris muscles.',[['Sphincter (circular) pupillae','Parasympathetic → constriction (miosis)'],['Radial (dilator) muscle','Sympathetic → dilation']],'Notes, iris table.',1),
+  T(mc('A person is frightened in a dim room. Their pupils dilate because:',['Sympathetic activation contracts the radial muscle','Parasympathetic activation contracts the sphincter','The cornea flattens','The ciliary body relaxes the iris'],'Darkness and emotional stress → sympathetic → dilation. Links to Lec 16.',1)),
+  od('Order the pupillary light reflex.',['Photoreceptors detect light','Optic nerve (CN II) → pretectal nucleus','Pretectal nucleus → both Edinger–Westphal nuclei','Oculomotor nerve (CN III) → ciliary ganglion','Postganglionic fibers → sphincter pupillae constricts'],'Slide 30, 5 steps.',1),
+  so('arc','Optic nerve (CN II)','aff','Afferent limb.',1),
+  so('arc','Pretectal nucleus','cen','Midbrain.'),
+  so('arc','Edinger–Westphal nucleus','cen','Parasympathetic center.'),
+  so('arc','Oculomotor nerve (CN III)','eff','Efferent limb.',1),
+  so('arc','Ciliary ganglion','eff','⭐ "You should be able to identify" it in lab.',1),
+  T(mc('Why does light in ONE eye constrict BOTH pupils (consensual response)?',['The pretectal nucleus projects bilaterally to both Edinger–Westphal nuclei','The optic chiasm crosses all fibers','Both eyes share one oculomotor nerve','The sympathetic system spreads it'],'⭐ Step 3 is bilateral.',1)),
+  T(mc('Light in the LEFT eye: the left pupil constricts (direct) and the right pupil constricts (consensual). Light in the RIGHT eye: neither pupil constricts. Where is the lesion?',['Right optic nerve (afferent)','Right oculomotor nerve','Left optic nerve','Left ciliary ganglion'],'Light in the right eye never reaches the brain. Light in the left eye works for both, so both efferents are fine. (Applied.)',1)),
+  T(mc('Light in EITHER eye: the left pupil constricts, but the right pupil never does. Where is the lesion?',['Right oculomotor nerve / right ciliary ganglion (efferent)','Right optic nerve','Left optic nerve','Optic chiasm'],'Both afferents work (the left pupil responds to either eye); the right efferent is broken. (Applied.)',1)),
+  T(mc('True or False: The pupillary light reflex is a sympathetic reflex.',['False','True'],'Parasympathetic (Edinger–Westphal → CN III → ciliary ganglion → sphincter).',1)),
+  T(mc('The slide says CN III carries "parasympathetic fibers only." What did she mean?',['CN III is mixed; this reflex uses only its parasympathetic fibers','CN III has no motor fibers','CN III is purely sensory','CN III carries the afferent limb'],'It also carries somatic motor fibers to external eye muscles.')),
+  T(mc('Which of the following are TRUE?\nI. The pretectal nucleus is in the midbrain\nII. The afferent limb is the oculomotor nerve\nIII. The ciliary ganglion is on the efferent limb\nIV. The sphincter pupillae is a circular muscle',['I, III, and IV','I and III','II, III, and IV','I, II, III, and IV'],'II: afferent limb = optic nerve (CN II).',1)),
+]);
+
+/* ---------- Stage 10: her quiz style ---------- */
+STAGE('Her trap questions','Scenarios, I–IV combos, two-statement checks','Mix', [
+  T(mc('A student recalls: 1. Light flips 11-cis-retinal to all-trans, activating opsin. 2. Activated opsin raises cGMP, opening Na⁺ channels. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'Activated opsin → transducin → PDE → cGMP FALLS.',1)),
+  T(mc('A student recalls: 1. Horizontal cells release GABA when excited by glutamate from dark surround photoreceptors. 2. That GABA depolarizes the center photoreceptor. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'GABA HYPERPOLARIZES the center, "as if more light."',1)),
+  T(mc('A student recalls: 1. The optic tract carries information from one eye. 2. The optic nerve carries the opposite visual field from both eyes. Which is accurate?',['Neither is accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate'],'Swapped: nerve = one eye; tract = opposite field from both eyes.',1)),
+  T(mc('A student recalls: 1. The fovea has only cones. 2. The optic disc has the highest acuity. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'The optic disc is the blind spot.')),
+  T(mc('Which of the following are TRUE?\nI. Smell is the only sense that skips the thalamus\nII. The cornea does most of the refraction\nIII. Opsin absorbs the photon\nIV. Photoreceptors release glutamate in darkness',['I, II, and IV','I and II','II, III, and IV','I, II, III, and IV'],'III: 11-cis-retinal absorbs. Four of her flagged facts in one item.',1)),
+  T(mc('Which of the following are TRUE?\nI. The OFF ganglion fires strongly in darkness\nII. Glutamate hyperpolarizes ON bipolar cells\nIII. Horizontal cells connect directly to bipolar cells\nIV. A pituitary tumor causes bitemporal hemianopia',['I, II, and IV','I and II','I, III, and IV','I, II, III, and IV'],'III: photoreceptor ↔ photoreceptor only.',1)),
+  T(mc('Which of the following are TRUE?\nI. Vitreous humor is continuously drained\nII. Aqueous humor drains into the scleral venous sinus\nIII. The posterior chamber is between the iris and lens\nIV. The choroid supplies the retina',['II, III, and IV','I, II, and III','II and III','I, II, III, and IV'],'I: vitreous is NOT continuously produced or drained.',1)),
+  T(mc('A patient with long-standing RPE disease shows poor night vision and gradual photoreceptor death. Which best explains BOTH?',['No visual cycle (no 11-cis regeneration) and no clearance of A2E-containing discs','Too much rhodopsin production by the RPE','Blocked canal of Schlemm','Overactive horizontal cells'],'RPE = visual cycle + phagocytosis. (Applied.)',1)),
+  T(mc('A 50-year-old keeps bumping into door frames on both sides but reads fine. MRI shows a sellar mass pushing up. Which fibers are compressed?',['Crossing nasal fibers at the chiasm','Uncrossed temporal fibers','Both optic tracts','Optic radiations to V1'],'Pituitary sits just below the chiasm.',1)),
+  T(mc('A patient has a sudden rise in eye pressure, eye pain, and blurred vision. Which mechanism best explains this?',['Aqueous humor outflow through the scleral venous sinus is blocked','Vitreous humor is overproduced','The choroid stops supplying blood','The cornea refracts too much'],'Glaucoma logic.',1)),
+  T(mc('A drug used for another condition inhibits PDE in photoreceptors. Which visual complaint is MOST expected?',['Reduced or altered response to light, because cGMP stays high during illumination','Total night blindness from too little cGMP','Constricted pupils','Loss of peripheral vision only'],'Applied: PDE inhibition blunts the light response.')),
+  T(mc('True or False: When a light is turned ON, a photoreceptor RELEASES MORE glutamate, which excites the ON bipolar cell.',['False','True'],'Two swaps in one: light → LESS glutamate; glutamate INHIBITS ON bipolars. Result is still ON excited, but the reasoning is backwards.',1)),
+  T(mc('True or False: Damage to the right optic tract causes complete loss of vision in the left eye.',['False','True'],'It causes loss of the LEFT VISUAL FIELD in both eyes. In-lecture trap option C.',1)),
+  T(mc('True or False: Shining light in one eye constricts only that eye’s pupil.',['False','True'],'Consensual response: both pupils constrict.',1)),
+  T(mc('True or False: The posterior chamber is part of the posterior cavity.',['False','True'],'It is part of the ANTERIOR cavity.',1)),
+  T(mc('True or False: The RPE produces rhodopsin.',['False','True'],'It regenerates 11-cis-retinal; opsin is made in the photoreceptor.',1)),
+  T(mc('Which pairing is correct?',['Amacrine cells → motion detection','Horizontal cells → motion detection','Amacrine cells → link photoreceptors','Bipolar cells → axons form optic nerve'],'Horizontal = edges/contrast.')),
+  T(mc('Which pairing is correct?',['Pretectal nucleus → bilateral output to Edinger–Westphal','Pretectal nucleus → output to LGN only','Edinger–Westphal → afferent limb','Ciliary ganglion → sympathetic dilation'],'Bilateral output → consensual response.')),
+  T(mc('Which pairing is correct?',['Darkness → OFF ganglion high activity','Darkness → ON ganglion high activity','Light → OFF bipolar depolarized','Light → photoreceptor depolarized'],'Dark/light table.',1)),
+  T(mc('Which statement is FALSE?',['The ON pathway is named because glutamate turns it on','The ON pathway is most active when light is on','ON and OFF bipolars have different glutamate receptors','Two pathways give a larger dynamic range'],'Glutamate INHIBITS the ON bipolar; "on" means lights on.',1)),
+  T(mc('Which statement is FALSE?',['Each photoreceptor connects to a single bipolar cell','Photoreceptors don’t fire action potentials','Ganglion cells are excited by bipolar glutamate','Bipolar cells begin contrast processing'],'Each photoreceptor connects to TWO bipolar cells (ON and OFF).',1)),
+  T(mc('Which statement is FALSE?',['The lens does most of the refraction','The ciliary body controls lens shape','The sclera is part of the fibrous tunic','The iris is part of the uvea'],'⭐ Cornea does most refraction.',1)),
+  T(mc('A patient’s right pupil doesn’t constrict to light in either eye, and the right eye also can’t move normally. Which nerve is most likely damaged?',['Right oculomotor nerve (CN III), which is mixed','Right optic nerve','Left pretectal nucleus','Right sympathetic chain'],'CN III carries somatic motor (eye movement) + parasympathetic fibers. (Applied.)',1)),
+  T(mc('A student looks at a white square on a black background, and its edges look extra bright. Which mechanism?',['Horizontal cells: dark surround → GABA → center hyperpolarizes more → ON pathway super-activated','Amacrine cells detecting motion','RPE melanin absorbing light','Pupil dilation'],'Lateral inhibition.',1)),
+  T(mc('In an experiment, the outer segment’s connecting cilium is cut. What fails FIRST?',['Delivery of new proteins and lipids from the inner segment, so discs can’t be renewed','Glutamate release from the terminal','Ganglion firing','Aqueous humor production'],'The cilium is the only bridge from IS to OS. (Applied.)')),
+  T(mc('Which explains why someone walking from sunlight into a dark theater can’t see well at first?',['Rhodopsin is photobleached and must be regenerated through the visual cycle (dark adaptation)','The cornea must reshape','The fovea fills with rods','Glutamate is used up'],'Slide 17 step 8.',1)),
+  T(mc('Which links Lecture 18 to Lecture 16 correctly?',['Pupil: parasympathetic constricts, sympathetic dilates','Pupil: sympathetic constricts, parasympathetic dilates','Both divisions constrict','The ENS controls the pupil'],'Her connections table.')),
+]);
+
+/* ---------- Stage 11: her practice questions, word for word ---------- */
+function PQ(q,o,why){ return T(mc(q,o,why,1)); }
+STAGE('Her practice questions','Her own practice sets, word for word','Exam', [
+  PQ('Which of the following fluids does the anterior cavity of the eye contain, and what is one function of that fluid?',['Aqueous humor; nourishes the cornea','Vitreous humor; maintains eye shape','Synovial fluid; shock absorber','Phosphodiesterase (PDE); involved in signal transduction'],'Anterior cavity = aqueous humor, which feeds the cornea and lens. Vitreous fills the posterior cavity. PDE is an enzyme, not a fluid.'),
+  PQ('A patient presents with difficulties seeing the color blue. Which type of cones are they most likely missing?',['S-cones','L-cones','M-cones','None of the above; cones are not responsible for color vision'],'S (short-wavelength) cones detect blue. L = red, M = green.'),
+  PQ('Which of the following statements is FALSE?',['Vision, touch, olfaction, hearing, and taste are all special sensations','All special senses first synapse on the thalamus except olfaction (smell)','The primary differentiator between special senses and general senses is the fact that special senses have specialized organs','None of the above, all are true'],'Touch is a GENERAL sense. Balance, not touch, is the fifth special sense.'),
+  PQ('A patient has a genetic mutation that prevents 11-cis-retinal from binding to opsin. What is the most likely effect on their vision?',['Light will not trigger retinal photoisomerization reaction, impairing vision','Retinal photoisomerization reaction will occur, but more slowly ','The visual cycle will continue, but only in cones','Photoreceptors will release less glutamate since 11-cis-retinal remain in inactive form'],'No rhodopsin forms, so the retinal-in-opsin "key" never gets turned by light. Cones also need retinal bound to opsin.'),
+  PQ('A researcher finds that a certain retinal cell depolarizes in response to glutamate. This cell is most likely:',['An off-center bipolar cell','An on-center bipolar cell','A horizontal cell','A cone photoreceptor'],'Glutamate depolarizes OFF bipolars and hyperpolarizes ON bipolars. (Horizontal cells are excited by glutamate too, but the lecture’s defining case is the OFF bipolar.)'),
+  PQ('A photoreceptor fails to replenish its outer segment membranes. Which of the following structures is most likely malfunctioning?',['Basal body and connecting cilium','Ganglion cell axons','Bipolar dendrites','Synaptic terminal of amacrine cells'],'All OS building material travels from the inner segment through the connecting cilium, anchored by the basal body.'),
+  PQ('A particular bacterial strain releases a toxin that interferes with the retinoid visual cycle. In patients with an infection, there is a sudden buildup of all-trans-retinol in photoreceptors, resulting in rapid photobleaching with no restoration. Which of the following proteins is likely directly affected by the toxin?',['Interphotoreceptor retinoid-binding protein (IRBP)','RPE65','Lecithin retinol acyltransferase (LRAT)','all-trans-retinol dehydrogenase (atRDH)'],'all-trans-retinol is made but stuck in the photoreceptor, so the shuttle to the RPE (IRBP) is the broken step. RPE65 and LRAT act inside the RPE, after transport; atRDH makes the retinol, which is happening.'),
+  PQ('A patient with a retinal detachment experiences vision loss because the RPE is separated from the photoreceptors. Which RPE function is most directly disrupted in this scenario?',['Shortage of 11-cis-retinal in the photoreceptors','Shortage of all-trans-retinal in the photoreceptors','Inactivation of phosphodiesterase (PDE)','Production of vitreous humor'],'Without contact, the RPE can’t return regenerated 11-cis-retinal. All-trans would build up, not run short. The RPE doesn’t make vitreous.'),
+  PQ('Which of the following shows the correct order of the visual pathway?',['retina → optic nerve → optic chiasm → optic tract → lateral geniculate nucleus (LGN) → optic radiation (projection fibers) → visual cortex','retina → optic tract → optic nerve → optic chiasm → lateral geniculate nucleus (LGN) → optic radiation (projection fibers) → visual cortex','optic tract → retina → optic nerve → optic chiasm → retina → optic radiation (projection fibers) → lateral geniculate nucleus (LGN) → visual cortex','retina → optic chiasm → optic nerve → retina → optic tract → lateral geniculate nucleus (LGN) → visual cortex → optic radiation (projection fibers)'],'Nerve before the chiasm, tract after it.'),
+  PQ('When a child looks at a tree, the image on their retina is actually upside down. Why do they still see the tree right-side up?',['The brain reverts the upside down image during  interpretation.','The eye muscles rotate the image.','The lens reflects the image to ensure the right side faces up.','The optic nerve flips orientation of the image before sending it to the brain.'],'The eye only captures; the brain corrects the inverted image.'),
+  PQ('Laser-Assisted In Situ Keratomileusis (LASIK) eye surgery involves removing eye tissue to modify the initial refraction of light entering the eye, providing relief for certain eye conditions. From this description, which of the following layers of the eye are most directly modified with this procedure?',['Fibrous tunic','Vascular tunic','Neural tunic','None of the above'],'"Initial refraction" = the cornea, which is part of the fibrous tunic.'),
+  PQ('Color blindness is an often inherited condition that results in the inability to perceive certain colors or color ranges. The OPN1MW gene encodes the protein opsin, particularly M-opsin. A defect in this gene would most likely result in which of the following types of color blindness?',['Deuteranopia','Protanopia','Tritanopia','None of the above'],'M (green) cones → deuteranopia. L (red) → protanopia. S (blue) → tritanopia.'),
+  PQ('Which of the following is an accurate statement about special senses and general senses?',['None of the above','General senses do not have dedicated brain areas; instead they have special organs for their stimuli.','Taste, balance, hearing, and proprioception are all examples of special senses.','The somatosensory cortex is involved in processing stimulus from special organs.'],'Special senses have the special organs; proprioception is general; somatosensory cortex handles general senses.'),
+  PQ('Which of the following is NOT a function of the eye allowing our ability to see?',['Corrects the inverted image','Refracts light','Focuses light onto the retina','Converts light to electrical signals'],'Correcting the inverted image is the BRAIN’s job.'),
+  PQ('With the goal of observing photoreceptor cells, researchers managed to find a way to “freeze” metabolites and chemicals in their current state to acquire a snapshot of the cells\' activity. When analyzing one of these snapshots, they find that a particular photoreceptor has a large relative concentration of all-trans-retinal and a low relative concentration of 11-cis-retinal. What description best fits the environment this cell was in right when the snapshot was taken?',['A bright environment with lots of light','A warm environment that denatures opsin','A dim environment with little light','A cool environment that prevents conformational changes'],'Light converts 11-cis to all-trans. Lots of all-trans = lots of light.'),
+  PQ('A mutation causes nonfunctional PDE in photoreceptors. What is the likely effect on the photoreceptor’s response to light?',['The photoreceptor cannot reduce cGMP levels in light','The photoreceptor becomes permanently hyperpolarized','Light leads to excessive Na⁺ influx and hyperpolarization','The photoreceptor releases no glutamate in the dark'],'PDE is what lowers cGMP in light. Without it, cGMP stays high and the cell stays depolarized.'),
+  PQ('Which of the following statements about the cells and organization of the retina is FALSE?',['Photoreceptors are found in the inner layer of the retina (closer to the lens).','Light passes through the ganglion cell layer before reaching the photoreceptors.','Horizontal cells enhance visual signals through lateral inhibition','The tiny depression at the center of the macula (called the fovea centralis) contains primarily cones, not rods.'],'Photoreceptors sit at the very BACK (outer layer), next to the RPE.'),
+  PQ('Why does the eye require the retinal pigment epithelium (RPE) to regenerate rhodopsin?',['Because conversion of all-trans-retinol to 11-cis-retinal requires enzymes located in the RPE.','Because opsin proteins can only be synthesized by the RPE.','Because the photoreceptors lack the ability to transport retinal molecules.','Because 11-cis-retinal is toxic and must be processed outside photoreceptors.'],'Opsin is made by the photoreceptor. All-trans (not 11-cis) is the toxic one.'),
+  PQ('Which of the following would NOT directly result from a dysfunction in the retinal pigment epithelium?',['Interference with lateral inhibition from horizontal cells, resulting in reduced visual clarity','Photoreceptor death due to lack of nutrients','Buildup of toxic all-trans-retinal in photoreceptors','Accumulation of shed photoreceptor discs','None of the above'],'Lateral inhibition is photoreceptor ↔ horizontal cell; the RPE isn’t part of it. The others are RPE jobs.'),
+  PQ('A patient undergoes an eye exam that shows an inability to constrict her pupil in response to light in her right eye, but the pupil in her left eye constricts normally. This suggests a problem with which component of the visual pathway?',['The oculomotor nerve (CN III) on the right side','The optic nerve of the right eye','The optic tract','The pretectal nucleus'],'One pupil fails while the other works = efferent (CN III) problem on that side. A right optic nerve lesion would stop BOTH pupils when the right eye is lit.'),
+]);
+
+
+</script>
+<script>
+const KEY='l18climb_v1';
+const store = { get(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } },
+  set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(e){} } };
+let SAVE = Object.assign({stars:{}, miss:[], best:0, theme:null}, store.get());
+if (SAVE.theme) document.documentElement.setAttribute('data-theme', SAVE.theme);
+const ALL = STAGES.flatMap(s=>s.items);
+const byId = Object.fromEntries(ALL.map(i=>[i.id,i]));
+const app = document.getElementById('app');
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const starHTML = n => '<i>'+'★'.repeat(n)+'</i>'+'★'.repeat(3-n);
+
+/* ---------- home ---------- */
+function home(){
+  // Stage map: senses → eye → retina → pathway
+  const P=[[34,40],[80,56],[126,72],[172,86],[218,100],[264,112],[310,124],[356,136],[402,148],[448,160],[494,172]];
+  const curve = 'M'+P.map(p=>p.join(',')).join(' L');
+  const dots = STAGES.map((s,i)=>{const [x,y]=P[i]; const done=(SAVE.stars[i]||0)===3; return `<g class="dot${done?' done':''}" data-stage="${i}" role="button" tabindex="0" aria-label="Stage ${i+1}: ${esc(s.name)}"><circle cx="${x}" cy="${y}" r="11"></circle><text x="${x}" y="${y}">${i+1}</text></g>`;}).join('');
+  const missN = SAVE.miss.filter(id=>byId[id]).length;
+  const trN = ALL.filter(i=>i.trap).length;
+  const hyN = ALL.filter(i=>i.hy).length;
+  app.innerHTML = `
+  <div class="top"><span class="eyebrow">A&amp;P · Lecture 18</span><button class="ghost" id="theme">${themeLabel()}</button></div>
+  <div class="hero"><h1>Vision Climb</h1><p>Eleven stops from the special senses to the pupillary reflex: eye structure, the fluids, the retina, rhodopsin, dark vs light, the visual cycle, ON/OFF and horizontal-cell circuits, and the chiasm. Built around her style: trap wording, broken-circuit predictions, patient scenarios, two-statement checks and I–IV combos. Stage 11 is her own practice questions, word for word. No diagram questions.</p></div>
+  <div class="trace" aria-label="Stage map from the senses to the pupillary reflex">
+    <svg viewBox="0 0 510 200" role="img">
+      <line class="grid" x1="10" y1="182" x2="500" y2="182"></line>
+      <text class="ax" x="30" y="22">senses</text><text class="ax" x="110" y="62">eye</text><text class="ax" x="60" y="130">retina · light · RPE · circuits</text><text class="ax" x="400" y="196">chiasm · pupil</text>
+      <path class="curve" d="${curve}"></path>${dots}
+    </svg>
+  </div>
+  <div class="modes">
+    <button class="mode" data-mode="hy"><b>High-Yield Run</b><span>${hyN} starred items, shuffled</span></button>
+    <button class="mode" data-mode="miss" ${missN?'':'disabled'}><b>Your Misses</b><span>${missN?missN+' to clear':'Nothing missed yet'}</span></button>
+    <button class="mode" data-mode="trap"><b>Trap Drill</b><span>${trN} trap and scenario questions</span></button>
+    <button class="mode" data-mode="mix"><b>Mixed 20</b><span>20 random from every stage</span></button>
+  </div>
+  <div class="eyebrow" style="margin-bottom:8px">Stages · ${ALL.length} questions</div>
+  <div class="stages">${STAGES.map((s,i)=>`<button class="stage" data-stage="${i}"><span class="mv">${s.mv}</span><span><h3>${i+1}. ${esc(s.name)}</h3><small>${esc(s.sub)} · ${s.items.length} Qs</small></span><span class="stars">${starHTML(SAVE.stars[i]||0)}</span></button>`).join('')}</div>
+  <p class="foot">Stars count first-try accuracy: 90% for three, 75% for two, 50% for one. Anything you miss comes back at the end of the run until you get it, and lands in Your Misses.</p>`;
+  app.querySelectorAll('[data-stage]').forEach(b=>{ const go=()=>startRun('stage',+b.dataset.stage); b.addEventListener('click',go); b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+  app.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.mode)));
+  document.getElementById('theme').onclick = toggleTheme;
+  // stages list top = last stage climbs upward visually? keep order 1..8 for reading.
+}
+function themeLabel(){ const t=document.documentElement.getAttribute('data-theme'); return t==='dark'?'Dark':t==='light'?'Light':'Auto'; }
+function toggleTheme(){ const r=document.documentElement; const t=r.getAttribute('data-theme'); const n = t===null?'dark':t==='dark'?'light':null; if(n) r.setAttribute('data-theme',n); else r.removeAttribute('data-theme'); SAVE.theme=n; store.set(SAVE); document.getElementById('theme').textContent=themeLabel(); }
+
+/* ---------- run ---------- */
+let R=null;
+function startRun(mode, stage){
+  let items, title;
+  if(mode==='stage'){ items = STAGES[stage].items.slice(); title = (stage+1)+'. '+STAGES[stage].name; }
+  else if(mode==='hy'){ items = shuffle(ALL.filter(i=>i.hy)); title='High-Yield Run'; }
+  else if(mode==='miss'){ items = shuffle(SAVE.miss.map(id=>byId[id]).filter(Boolean)); title='Your Misses'; }
+  else if(mode==='trap'){ items = shuffle(ALL.filter(i=>i.trap)); title='Trap Drill'; }
+  else { items = shuffle(ALL).slice(0,20); title='Mixed 20'; }
+  R = {mode, stage, title, queue: items.map(it=>({it, retry:false})), total: items.length, firstRight:0, firstDone:0, score:0, streak:0, missed:[], pos:0};
+  renderItem();
+}
+function mult(){ return Math.min(4, 1+Math.floor(R.streak/3)); }
+function hud(){
+  const done = R.firstDone; const pct = Math.round(100*done/R.total);
+  return `<div class="hud"><div class="hudrow"><button class="ghost" id="quit">← Map</button><span>${esc(R.title)}</span><span>${R.score} pts <span class="mult">×${mult()}</span></span></div>
+  <div class="bar"><i style="width:${pct}%"></i></div><div class="hudrow"><span>${Math.min(done+1,R.total)} / ${R.total}${R.queue[R.pos]&&R.queue[R.pos].retry?' · retry':''}</span><span>streak ${R.streak}</span></div></div>`;
+}
+function figHTML(key, item){
+  const d = DIA[key]; if(!d) return '';
+  const mask = d.mask!==false;
+  let boxes = '';
+  if(item && (item.t==='lb'||item.t==='nm')){
+    let tIdx = -1;
+    if(item.t==='nm'){ let k=0; d.b.forEach((b,i)=>{ if(b[4]===item.name){ if(k===item.idx) tIdx=i; k++; } }); }
+    boxes = d.b.map((b,i)=>{
+      const cls = item.t==='lb' ? 'box tap' : (i===tIdx ? 'box target' : 'box');
+      if(!mask && item.t==='nm' && i!==tIdx) return '';
+      const tag = item.t==='lb' ? 'button' : 'div';
+      return `<${tag} class="${cls}" data-bi="${i}" data-name="${esc(b[4])}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" ${item.t==='lb'?'aria-label="covered label"':''}></${tag}>`;
+    }).join('');
+  }
+  return `<div class="fig ${mask?'':'nomask'}"><img src="${d.img}" alt="${esc(d.title)}">${boxes}</div><div class="figcap">${esc(d.title)}</div>`;
+}
+function renderItem(){
+  if(R.pos>=R.queue.length) return finish();
+  const {it, retry} = R.queue[R.pos];
+  const typeName = {mc:'Multiple choice',so:'Sort',od:'Order',mt:'Match',lb:'Tap the label',nm:'Name the box'}[it.t];
+  let body = '';
+  const tag = `<div class="tag">${typeName}${it.trap?' <span class="tr">trap</span>':''}${it.hy?' <span class="hy">high yield</span>':''}${retry?' · second chance':''}</div>`;
+  if(it.t==='mc'){
+    const opts = shuffle(it.o);
+    body = (it.ctx?`<div class="ctx">${esc(it.ctx)}</div>`:'') + (it.img?figHTML(it.img):'') + `<p class="q">${esc(it.q)}</p><div class="opts">${opts.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(it.t==='so'){
+    const S = SORTS[it.set];
+    body = `<p class="q">${esc(S.label)}</p><div class="sortitem">${esc(it.item)}</div><div class="cats">${S.cats.map(c=>`<button class="cat" data-key="${c[0]}" style="--cc:var(${c[2]})">${esc(c[1])}</button>`).join('')}</div>`;
+  } else if(it.t==='od'){
+    body = `<p class="q">${esc(it.q)}</p><div class="seq" id="seq"></div><div class="chips">${shuffle(it.steps).map(s=>`<button class="chip" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><div class="actions"><button class="ghostbtn" id="undo">Undo</button></div>`;
+  } else if(it.t==='mt'){
+    body = `<p class="q">${esc(it.q)}</p><div class="mtgrid"><div class="mtcol">${it.pairs.map(p=>`<button class="mtb L" data-v="${esc(p[0])}">${esc(p[0])}</button>`).join('')}</div><div class="mtcol">${shuffle(it.pairs.map(p=>p[1])).map(v=>`<button class="mtb Rr" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>`;
+  } else if(it.t==='lb'){
+    body = `<p class="q">Tap the covered label: <span style="color:var(--accent)">${esc(it.name)}</span></p>` + figHTML(it.dia,it);
+  } else if(it.t==='nm'){
+    const d=DIA[it.dia];
+    let opts;
+    if(it.o) opts = it.o.slice();
+    else { const names=[...new Set(d.b.map(b=>b[4]))].filter(n=>n!==it.name); opts=[it.ans, ...shuffle(names).slice(0,3)]; }
+    body = figHTML(it.dia,it) + `<p class="q">${esc(it.q||'Name the label in the orange box.')}</p><div class="opts">${shuffle(opts).map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  }
+  app.innerHTML = hud() + `<div class="card" id="card">${tag}${body}<div id="fb"></div></div>`;
+  document.getElementById('quit').onclick = ()=>{ R=null; home(); };
+  wire(it);
+  window.scrollTo(0,0);
+}
+function wire(it){
+  const card = document.getElementById('card');
+  if(it.t==='mc' || it.t==='nm'){
+    const right = it.t==='mc' ? it.o[0] : it.ans;
+    card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.v===right;
+      card.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.v===right) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      if(it.t==='nm'){ const t=card.querySelector('.box.target'); if(t){ t.classList.add('right'); } }
+      answer(ok, it.t==='nm' && !ok ? 'It was: '+it.ans : (ok?'':'Answer: '+right));
+    });
+  } else if(it.t==='so'){
+    card.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.key===it.key;
+      card.querySelectorAll('.cat').forEach(x=>{ x.disabled=true; if(x.dataset.key===it.key) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      const S=SORTS[it.set]; answer(ok, ok?'':'Answer: '+S.cats.find(c=>c[0]===it.key)[1]);
+    });
+  } else if(it.t==='lb'){
+    card.querySelectorAll('.box.tap').forEach(b=>b.onclick=()=>{
+      if(card.dataset.done) return; card.dataset.done=1;
+      const ok = b.dataset.name===it.name;
+      card.querySelectorAll('.box.tap').forEach(x=>{ x.disabled=true; if(x.dataset.name===it.name) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      answer(ok, ok?'':'The green outline shows where it is.');
+    });
+  } else if(it.t==='od'){
+    const seq=[]; const seqEl=document.getElementById('seq');
+    const draw=()=>{ seqEl.innerHTML = seq.map((s,i)=>`<div class="slot"><span>${i+1}</span><span>${esc(s)}</span></div>`).join(''); };
+    card.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+      seq.push(b.dataset.v); b.disabled=true; draw();
+      if(seq.length===it.steps.length){
+        const ok = seq.every((s,i)=>s===it.steps[i]);
+        seqEl.querySelectorAll('.slot').forEach((el,i)=>{ if(seq[i]!==it.steps[i]) el.classList.add('wrong'); });
+        document.getElementById('undo').disabled=true;
+        answer(ok, ok?'':'Correct order: '+it.steps.map((s,i)=>(i+1)+') '+s).join('  '));
+      }
+    });
+    document.getElementById('undo').onclick=()=>{ const v=seq.pop(); if(v==null) return; const c=[...card.querySelectorAll('.chip')].find(x=>x.dataset.v===v&&x.disabled); if(c) c.disabled=false; draw(); };
+  } else if(it.t==='mt'){
+    let selL=null; const made={};
+    const L=[...card.querySelectorAll('.mtb.L')], Rr=[...card.querySelectorAll('.mtb.Rr')];
+    L.forEach(b=>b.onclick=()=>{ if(b.classList.contains('paired')) return; L.forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); selL=b; });
+    Rr.forEach(b=>b.onclick=()=>{
+      if(!selL || b.classList.contains('paired')) return;
+      made[selL.dataset.v]=b.dataset.v; selL.classList.remove('sel'); selL.classList.add('paired'); b.classList.add('paired');
+      selL.textContent = selL.dataset.v+' → '+b.dataset.v; selL=null;
+      if(Object.keys(made).length===it.pairs.length){
+        const ok = it.pairs.every(p=>made[p[0]]===p[1]);
+        L.forEach(x=>{ const p=it.pairs.find(p=>p[0]===x.dataset.v); x.classList.add(made[p[0]]===p[1]?'right':'wrong'); });
+        answer(ok, ok?'':'Pairs: '+it.pairs.map(p=>p[0]+' → '+p[1]).join(' · '));
+      }
+    });
+  }
+}
+function answer(ok, extra){
+  const q = R.queue[R.pos];
+  if(!q.retry){
+    R.firstDone++;
+    if(ok){ R.firstRight++; }
+    else { R.missed.push(q.it.id); if(!SAVE.miss.includes(q.it.id)) SAVE.miss.push(q.it.id); }
+  }
+  if(ok){ R.score += 10*mult(); R.streak++; if(R.mode==='miss'||q.retry) SAVE.miss = SAVE.miss.filter(id=>id!==q.it.id); }
+  else { R.streak=0; R.queue.push({it:q.it, retry:true}); }
+  store.set(SAVE);
+  const fb = document.getElementById('fb');
+  fb.innerHTML = `<div class="fb ${ok?'ok':'no'}"><b>${ok?'Correct':'Not quite'}</b>${extra?esc(extra)+'<br>':''}${esc(q.it.why||'')}</div><button class="next" id="next">${R.pos+1<R.queue.length?'Next':'See results'}</button>`;
+  const n=document.getElementById('next'); n.onclick=()=>{ R.pos++; renderItem(); }; n.focus({preventScroll:true});
+  fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function finish(){
+  const acc = R.total? R.firstRight/R.total : 0;
+  const st = acc>=0.9?3:acc>=0.75?2:acc>=0.5?1:0;
+  if(R.mode==='stage'){ SAVE.stars[R.stage]=Math.max(SAVE.stars[R.stage]||0, st); }
+  SAVE.best=Math.max(SAVE.best||0,R.score); store.set(SAVE);
+  const missed=[...new Set(R.missed)].map(id=>byId[id]);
+  const label = it => it.t==='so'?it.item : (it.t==='lb'||it.t==='nm')? (it.q||'Label')+': '+it.ans : it.q;
+  app.innerHTML = `<div class="card result" style="margin-top:18px"><div class="eyebrow">${esc(R.title)}</div><h2>${st===3?'Summit':st===2?'Almost there':st===1?'Halfway up':'Keep climbing'}</h2>
+    <div class="big-stars">${starHTML(st)}</div>
+    <p class="stat">${R.firstRight}/${R.total} first try (${Math.round(acc*100)}%) · ${R.score} pts · best ${SAVE.best}</p>
+    ${missed.length?`<div class="eyebrow" style="margin-top:12px">Missed on first try</div><ul class="misslist">${missed.map(it=>`<li>${esc(label(it))}</li>`).join('')}</ul>`:''}
+    <div class="actions" style="margin-top:16px"><button class="next" id="again">Run it again</button><button class="ghostbtn" id="map">Back to map</button></div></div>`;
+  document.getElementById('again').onclick=()=>startRun(R.mode,R.stage);
+  document.getElementById('map').onclick=()=>{ R=null; home(); };
+}
+window.GAME = { cur: ()=> R && R.queue[R.pos] ? R.queue[R.pos].it : null, STAGES, DIA, SORTS, startRun, home };
+
+home();
+</script>

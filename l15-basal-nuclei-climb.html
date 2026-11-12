@@ -1,0 +1,551 @@
+<!doctype html><html lang="en"><head>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8">
+<title>Basal Nuclei Climb</title>
+<meta name="description" content="Lecture 15 review game: basal ganglia, action selection, dopamine and disorders">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column; home = a cortex → BG → thalamus loop where each stage is a stop, run = card + figure + choices */
+:root{
+  --bg:#EDF1EE; --panel:#FFFFFF; --panel2:#F6F8F6; --ink:#15201C; --muted:#5A6A64; --line:#CFD9D4;
+  --accent:#0C7A63; --accent-ink:#FFFFFF; --cover:#EE8A22; --cover-dim:#B9C4BF; --ok:#1C8A4B; --bad:#C2372C; --star:#D99A0B;
+  --c1:#2F6FB7; --c2:#8A5BB0; --c3:#0C7A63; --c4:#C9821A; --c5:#C4467E;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.box:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.hero h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.02;letter-spacing:-.01em;margin-top:6px}
+.hero p{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.trace{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px 4px;overflow:hidden}
+.trace svg{display:block;width:100%;height:auto}
+.trace .grid{stroke:var(--line);stroke-width:1}
+.trace .curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round}
+.trace .dot{cursor:pointer}
+.trace .dot circle{fill:var(--panel);stroke:var(--accent);stroke-width:2.5}
+.trace .dot.done circle{fill:var(--accent)}
+.trace .dot text{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.trace .dot.done text{fill:var(--accent-ink)}
+.trace .ax{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 22px}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.mode b{font-family:var(--display);font-weight:700;font-size:17px}
+.mode span{color:var(--muted);font-size:13px}
+.mode:disabled{opacity:.45;cursor:default}
+.stages{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%}
+.stage .mv{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--accent);font-variant-numeric:tabular-nums}
+.stage h3{font-size:18px;font-weight:700}
+.stage small{color:var(--muted);display:block;font-size:13px}
+.stars{font-size:16px;letter-spacing:2px;color:var(--line);white-space:nowrap}
+.stars i{font-style:normal;color:var(--star)}
+.foot{color:var(--muted);font-size:13px;margin-top:22px}
+/* run */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:flex;flex-direction:column;gap:8px}
+.hudrow{display:flex;align-items:center;gap:10px;justify-content:space-between;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.mult{color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:8px}
+.ctx{background:var(--panel2);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:15px}
+.tag{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tag .hy{color:var(--bad);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.q{font-size:18px;font-weight:700;margin:2px 0 12px}
+.fig{position:relative;width:100%;margin:4px 0 4px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.fig img{display:block;width:100%;height:auto}
+.box{position:absolute;border-radius:3px;background:var(--cover-dim);border:0;padding:0}
+.box.target{background:var(--cover);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--cover)}
+.box.tap{background:var(--cover);cursor:pointer}
+.box.tap:hover{filter:brightness(1.08)}
+.nomask .box{background:transparent}
+.nomask .box.target{background:color-mix(in srgb,var(--cover) 14%,transparent);box-shadow:none;outline:3px solid var(--cover);outline-offset:-3px}
+.box.right{background:transparent!important;outline:3px solid var(--ok);outline-offset:-1px;box-shadow:none}
+.box.wrong{background:transparent!important;outline:3px solid var(--bad);outline-offset:-1px;box-shadow:none}
+.figcap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--panel))}
+.opt:disabled{cursor:default}
+.sortitem{font-size:18px;font-weight:700;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cat{border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 10%,var(--panel));border-radius:10px;padding:12px 10px;font-weight:700}
+.cat.right{outline:3px solid var(--ok);outline-offset:2px}
+.cat.wrong{outline:3px solid var(--bad);outline-offset:2px}
+.seq{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-height:20px}
+.seq .slot{font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));display:flex;gap:8px}
+.seq .slot.wrong{background:color-mix(in srgb,var(--bad) 14%,var(--panel))}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--panel2);border:1.5px solid var(--line);border-radius:999px;padding:8px 13px;font-size:15px}
+.chip:disabled{opacity:.3}
+.mtgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.mtcol{display:flex;flex-direction:column;gap:8px}
+.mtb{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.mtb.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.mtb.paired{opacity:.55}
+.mtb.right{border-color:var(--ok)} .mtb.wrong{border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:10px;padding:12px 14px;font-size:15px}
+.fb.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border:1px solid var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 10%,var(--panel));border:1px solid var(--bad)}
+.fb b{display:block;margin-bottom:2px}
+.next{margin-top:14px;width:100%;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px;font-weight:700;font-size:17px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .next{flex:1 1 160px;margin-top:0}
+.actions .ghostbtn{flex:1 1 160px;background:none;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-weight:700}
+.result h2{font-size:30px;margin:6px 0}
+.big-stars{font-size:38px;letter-spacing:6px;color:var(--line)} .big-stars i{font-style:normal;color:var(--star)}
+.stat{font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.misslist{margin:12px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+@media (max-width:440px){.stage{grid-template-columns:54px minmax(0,1fr) auto;gap:10px;padding:12px}.stars{font-size:13px;letter-spacing:1px}.cats{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+</head><body>
+<div class="wrap" id="app"></div>
+
+<script>
+const DIA = {};
+const STAGES = [];
+let _sid = 0;
+function STAGE(name, sub, mv, items){ const s = {name, sub, mv, items: items.flat()}; s.items.forEach((it,i)=>{ it.id = 's'+STAGES.length+'_'+i; it.stage = STAGES.length; }); STAGES.push(s); }
+function mc(q,o,why,red){ return {t:'mc',q,o,why,hy:!!red}; }
+function im(img,q,o,why,red){ return {t:'mc',img,q,o,why,hy:!!red}; }
+function so(set,item,key,why,red){ return {t:'so',set,item,key,why,hy:!!red}; }
+function od(q,steps,why,red){ return {t:'od',q,steps,why,hy:!!red}; }
+function mt(q,pairs,why,red){ return {t:'mt',q,pairs,why,hy:!!red}; }
+function lb(dia,name,why,red){ return {t:'lb',dia,name,why,hy:!!red}; }
+function nm(dia,name,why,red,q,x){ x=x||{}; return {t:'nm',dia,name,why,hy:!!red,q:q||null,o:x.o||null,ans:x.ans||name,idx:x.idx||0}; }
+function tp(q,o,why,red){ return {t:'mc',q,o,why,hy:!!red,trap:true}; }
+function cs(text,steps,red,img){ return steps.map(s=>({t:'mc',ctx:text,img:img||null,q:s[0],o:s[1],why:s[2],hy:!!red})); }
+</script>
+<script>
+// ===== Lecture 15 content =====
+const SORTS = {
+  part: {label: 'Which basal ganglia component?', cats: [['str','Striatum (caudate + putamen)','--c1'],['snc','Substantia nigra pars compacta (SNc)','--c4'],['gp','Globus pallidus (GPi / GPe)','--c3'],['stn','Subthalamic nucleus (STN)','--c5']]},
+  path: {label: 'Direct pathway, indirect pathway, or both?', cats: [['d','Direct pathway (GO)','--c3'],['i','Indirect pathway (STOP)','--c5'],['b','Both','--c1']]},
+  loop: {label: 'Which parallel loop?', cats: [['m','Motor loop','--c1'],['a','Associative loop','--c5'],['l','Limbic loop','--c3']]},
+  da: {label: 'Which condition raises SNc dopamine?', cats: [['sal','Salience / reward prediction','--c1'],['emo','Positive emotions','--c5'],['hab','Practice & habit formation','--c3'],['drug','Stimulant drugs','--c4']]},
+  dis: {label: 'Which disorder?', cats: [['pd','Parkinson’s disease','--c1'],['hd','Huntington’s disease','--c5'],['dys','Dystonia','--c4'],['tour','Tourette syndrome','--c3']]},
+  pds: {label: 'Which Parkinson’s symptom does this explain?', cats: [['brady','Bradykinesia','--c1'],['rig','Muscle rigidity','--c4'],['trem','Resting tremor','--c5'],['post','Postural instability','--c2'],['gait','Shuffling gait','--c3']]},
+  hk: {label: 'Too much movement or too little?', cats: [['hyper','Hyperkinetic (excess movement)','--c5'],['hypo','Hypokinetic (too little / slow)','--c1']]},
+};
+
+STAGE('Which Plan Wins?', 'Why we need the basal ganglia (slides 2 to 4)', 'Choose', [
+  mc('What problem do the basal ganglia solve?',['The cortex can make several feasible plans, but only one should be executed at a time','The cortex cannot make any plans on its own','Motor neurons cannot fire without the basal ganglia','Muscles need extra sensory feedback'],'Part 1 key point: multiple plans can be generated, but only one should be executed at a time.',1),
+  mc('In her puddle example (step around, jump over, walk through, turn back), what do the basal ganglia do?',['Pick one option and suppress the others','Invent the four options','Send the command to the leg muscles','Sense how deep the puddle is'],'Select the desired action while suppressing competing alternatives.',1),
+  mc('Which of the following best describes the role of the basal ganglia in supporting movement?',['They help select and initiate appropriate motor plans','They create motor plans','They directly stimulate motor neurons to initiate voluntary movements','They enhance sensory perception before movement begins'],'In-lecture Q1. Plans are created by the cortex and motor neurons are driven by the motor cortex; BG evaluate and select.',1),
+  mc('Her one-line summary of what the basal ganglia do with plans:',['"They decide which plans are allowed to become reality"','"They write the plans"','"They carry the plans to the muscles"','"They store old plans"'],'BG do NOT create plans.',1),
+  mt('Match each role on the "action-selection committee" slide.',[['Cortex','Proposes options'],['Direct pathway','Votes GO'],['Indirect pathway','Votes STOP'],['Dopamine','Biases the vote based on reward']],'Slide 3 committee.',1),
+  mc('In her committee analogy, dopamine is the:',['Lobbyist / advisor that biases toward the most rewarding option','Chairperson who writes the plans','Messenger that carries plans to muscles','Voter who always says no'],'Dopamine biases decisions toward what was most rewarding based on previous experience.'),
+  mc('Which question do the basal ganglia answer?',['"Which movement should happen?"','"How strong should each muscle fire?"','"Where is my arm right now?"','"What did I just see?"'],'From her notes.'),
+  tp('Which statement is TRUE?',['The basal ganglia never send commands directly to motor neurons','The basal ganglia create Plans A to D and send them to the cortex','The basal ganglia are the final pathway to the muscles','The basal ganglia only work in the motor loop'],'BG → thalamus → cortex → UMNs. The cortex creates plans and drives the motor neurons.',1),
+  tp('"The basal ganglia evaluate options" means they:',['Decide which already-made plan gets released','Generate a new option when none of the plans fit','Measure how much force each muscle makes','Process sensory input before the cortex does'],'They select among plans the cortex proposes. They do not create plans or handle sensation.',1),
+  tp('The cortex has two feasible plans, but the basal ganglia select neither. What happens?',['The thalamus stays inhibited, the cortex gets no "go", and no movement happens','Both plans run at once','The faster plan runs by default','The muscles contract at random'],'Slide 5 step 6. Felt as hesitation or trouble starting.',1),
+  tp('Someone sets a goal and plans it, but the plan is never organized into motor commands. Which level is failing?',['Motor cortex (implementation)','Association cortex (planning)','Brainstem and spinal cord (execution)','Basal ganglia'],'Slide 2: association cortex plans, motor cortex implements, brainstem and spinal cord execute.'),
+  od('Put a voluntary movement in order, from idea to muscle.',['Association cortex plans','Cortex proposes options to the basal ganglia','Basal ganglia select one plan','Thalamus is released and sends "go"','Motor cortex fires UMNs','Brainstem and spinal cord execute'],'Combines slides 2, 3 and 5. (The full chain is assembled from three slides, not shown as one list.)',1),
+]);
+
+STAGE('Parallel Loops', 'Cortex → BG → thalamus → cortex (slides 5 and 6)', 'Loop', [
+  od('Put the shared core structure of each loop in order.',['Cerebral cortex','Basal ganglia','Thalamus','The same cortical area'],'Cortex → BG → thalamus → back to the cortex that proposed the plan.',1),
+  so('loop','Proposes possible movements','m','Motor loop: motor cortex.'),
+  so('loop','Dorsolateral prefrontal & parietal cortex','a','Associative loop.',1),
+  so('loop','Proposes alternative strategies and goals','a','Associative loop.'),
+  so('loop','Medial prefrontal & orbital cortex','l','Limbic loop.',1),
+  so('loop','Proposes emotionally driven behaviors','l','Limbic loop.'),
+  mc('Besides movements, what else do the basal ganglia select among?',['Goals, thoughts, behaviors and emotional responses','Only eye movements','Only reflexes','Sensory inputs'],'"I want you to recognize that basal ganglion do much more than just select movement plans."',1),
+  od('Put the 6 steps of the basal ganglia loop in order.',['Input: a cortex proposes plans','Processing: plans compete in the BG','Relay: output to the thalamus','Feedback: thalamus sends "go" to the same cortex','Execution: cortex fires UMNs','(If no plan wins: no UMN activation)'],'Slide 5 list.',1),
+  mc('At rest, the thalamus is:',['Under tonic inhibition from the basal ganglia','Firing freely at maximal rate','Excited by the basal ganglia','Disconnected from the cortex'],'"Remember something important here": the thalamus is inhibited at rest. Only selected plans allow thalamic activation.',1),
+  mc('When a plan is selected, the released thalamus sends a signal to:',['The same cortical area that proposed the plan','The spinal cord directly','The substantia nigra','A different, random cortical area'],'Step 4: feedback to the same cortex, now with a "go" signal.',1),
+  mc('Who actually sends the final motor command to the brainstem or spinal cord?',['The cortex, through upper motor neurons','The basal ganglia','The thalamus','The substantia nigra'],'Step 5. "Execution happens after the permission."',1),
+  mc('If no plan wins in the basal ganglia, what happens?',['Thalamus stays suppressed, cortex gets no "go", no UMNs fire','The default plan runs anyway','The thalamus fires the muscles itself','All plans run at once'],'Step 6. Experienced as hesitation or difficulty initiating.',1),
+  mc('She said failing to select a plan can be experienced as:',['Hesitation, indecisiveness, difficulty initiating, lack of motivation','Pain','Double vision','Muscle cramps'],'From her notes.'),
+  tp('A person keeps picking poor strategies for problems but moves normally. Which loop is the best candidate?',['Associative loop','Motor loop','Limbic loop','None: the basal ganglia only handle movement'],'The associative loop selects strategies and goals. (Not on the slides as a case: applied from the loop table.)',1),
+  tp('In the limbic loop, the released thalamus sends its "go" signal to:',['The medial prefrontal and orbital cortex that proposed it','The primary motor cortex','The spinal cord','The basal ganglia'],'Step 4: the thalamus activates the SAME cortical area that proposed the plan, not always the motor cortex.',1),
+  tp('Thalamic activity rises when a plan is selected. Is that because the basal ganglia excite the thalamus?',['No: they reduce their tonic inhibition (disinhibition)','Yes: basal ganglia output is excitatory','Yes: dopamine excites the thalamus directly','No: the spinal cord excites it'],'BG output is inhibitory. Selection lifts the brake.',1),
+  tp('Which is NOT one of the 6 loop steps?',['The basal ganglia send the motor command to the spinal cord','The thalamus activates the cortex that proposed the plan','The cortex sends commands through UMNs','Plans compete inside the basal ganglia'],'The cortex, not the BG, sends commands through UMNs.'),
+]);
+
+STAGE('Who’s on the Committee', 'Basal ganglion structure (slides 8 and 9)', 'Parts', [
+  mc('The striatum is made of:',['Caudate nucleus + putamen','Caudate + globus pallidus','Putamen + thalamus','GPi + GPe'],'Slide 8 table.',1),
+  so('part','Input zone: receives signals from cortex','str','Almost all info entering BG comes through the striatum.',1),
+  so('part','Releases dopamine that targets the striatum','snc','SNc, in the midbrain.',1),
+  so('part','Output zone: tonic inhibitory output to the thalamus','gp','"Very important." Movement occurs via disinhibition.',1),
+  so('part','Modulates output activity','stn','Fine-tunes how strongly GP inhibits the thalamus.',1),
+  so('part','Located in the midbrain','snc','SNc is in the midbrain.'),
+  so('part','Has internal and external segments','gp','GPi and GPe.'),
+  so('part','Where plans (movements, goals, emotional behaviors) first arrive to compete','str','The input zone.'),
+  mc('Which of the following structures is NOT typically considered part of the basal ganglia?',['Thalamus','Putamen','Subthalamic nucleus','Globus pallidus externus (GPe)'],'In-lecture Q2. "Thalamus is what basal ganglion is trying to influence."',1),
+  mc('By default (no action selected), globus pallidus output to the thalamus is:',['Tonically inhibitory','Tonically excitatory','Silent','Only active during sleep'],'"Here is a really important idea": GP neurons are tonically inhibitory, so movement is suppressed by default.',1),
+  mc('Because GP output is constantly inhibitory, movement happens by:',['Disinhibition (removing the brake)','Direct excitation of muscles by GP','Increasing GP firing','Blocking the cortex'],'Movement occurs via disinhibition.',1),
+  mc('Her explanation for why starting something feels harder than continuing it:',['Initiating any action must cross a threshold to overcome tonic GP suppression','Muscles are cold at the start','The cerebellum is slow to warm up','Dopamine is only released after the action'],'From her notes.'),
+  mc('Does SNc dopamine directly trigger movement?',['No: it carries information about the value of the plan','Yes: it fires the UMNs','Yes: it excites the muscles','No: it only affects sleep'],'Dopamine signals whether the plan is rewarding, meaningful, worth the effort.'),
+  tp('Which is NOT a job of the striatum?',['Providing the tonic inhibitory output to the thalamus','Receiving input from the cortex','Being where plans first compete','Holding the D1 and D2 neuron groups'],'Tonic output to the thalamus is the globus pallidus (output zone). The striatum is the input zone.',1),
+  tp('If all GPi output were silenced, what would happen to the thalamus at rest?',['It would be released: the tonic brake is gone','It would be inhibited even more','No change','It would lose its cortical input'],'GPi is the tonic brake on the thalamus. (Not on the slides as a case: applied from the circuit.)',1),
+  tp('The SNc is in the ___, and its dopamine mainly targets the ___.',['midbrain; striatum','striatum; thalamus','thalamus; cortex','midbrain; spinal cord'],'From her notes.',1),
+  tp('What does the subthalamic nucleus do?',['Modulates output: fine-tunes how strongly GP inhibits the thalamus','It is the input zone for the cortex','It releases dopamine','It is the output zone itself'],'STN modulates output; GP is the output zone.'),
+]);
+
+STAGE('GO vs STOP', 'Direct and indirect pathways (slides 10 and 11)', 'Go/Stop', [
+  od('Put the DIRECT pathway in order.',['Motor cortex excites striatum (putamen)','Striatum inhibits GPi','GPi’s tonic inhibition of thalamus is removed','Thalamus excites motor cortex','Motor cortex activates UMNs → movement'],'Slide 10 left column. "Inhibiting the inhibitor."',1),
+  od('Put the INDIRECT pathway in order.',['Motor cortex excites striatum','Striatum inhibits GPe','STN is disinhibited','STN excites GPi','GPi inhibits thalamus more','Less excitation of motor cortex'],'Slide 10 right column. "Presses the brake harder."',1),
+  so('path','Goal: "GO" signal, disinhibit the thalamus','d','Direct.',1),
+  so('path','Goal: "STOP" signal, strengthen inhibition of the thalamus','i','Indirect.',1),
+  so('path','Striatum inhibits GPe','i','Indirect only.',1),
+  so('path','Striatum inhibits GPi directly','d','Direct.'),
+  so('path','Includes the subthalamic nucleus','i','STN is in the indirect pathway.',1),
+  so('path','Striatal neurons express D1 receptors','d','D1 = direct.',1),
+  so('path','Striatal neurons express D2 receptors','i','D2 = indirect.',1),
+  so('path','Motor cortex excites the striatum','b','Cortex excites both at the same time.'),
+  so('path','Dopamine excites this pathway: "big yes"','d','D1 signaling is excitatory.',1),
+  so('path','Dopamine inhibits this pathway: "weak no"','i','D2 signaling is inhibitory.',1),
+  so('path','With dopamine, the net output excites movement','b','Slide 10 table: both outputs "Excites movement" when dopamine is present.',1),
+  mc('Which of the following best distinguishes the direct from the indirect pathway in the basal ganglia?',['The direct pathway increases cortical motor activity, while the indirect pathway suppresses it','Dopamine excites striatum in both pathways','The direct pathway involves the subthalamic nucleus, while the indirect pathway bypasses it','The indirect pathway leads directly to the spinal cord, while the direct pathway does not'],'In-lecture Q3. STN is indirect; neither pathway reaches the spinal cord.',1),
+  mc('In the indirect pathway, GPe normally does what to STN?',['Tonically inhibits it','Excites it','Has no connection','Releases dopamine onto it'],'GPe tonically inhibits STN; inhibiting GPe releases STN.'),
+  mc('STN acts on GPi by:',['Excitation (glutamate)','Inhibition (GABA)','Dopamine release','No connection'],'STN excites GPi → more inhibition of the thalamus.',1),
+  mc('Are direct and indirect striatal neurons the same cells?',['No: two distinct groups (D1 vs D2)','Yes: one group switches roles','Yes: they all express both receptors','No: indirect neurons live in the thalamus'],'"Two distinct groups of neurons in the striatum."',1),
+  tp('How many inhibitory synapses are there in the direct pathway from striatum to thalamus?',['2: striatum → GPi and GPi → thalamus. Inhibiting an inhibitor releases the target','1','3','0'],'Striatum ⊣ GPi ⊣ thalamus. Removing an inhibitor releases the target.',1),
+  tp('In the indirect pathway, which connection is EXCITATORY?',['STN → GPi','Striatum → GPe','GPe → STN','GPi → thalamus'],'STN excites GPi with glutamate. Every other link listed is GABA.',1),
+  tp('The striatum inhibits GPi in the direct pathway. Does that reduce movement?',['No: inhibiting the inhibitor releases the thalamus, so movement increases','Yes: striatal inhibition always reduces movement','Yes, through the STN','No: the striatum excites the thalamus directly'],'"Inhibiting the inhibitor, lifting the brake."',1),
+  tp('The cortex EXCITES the striatum in both pathways. So how can the indirect pathway mean "stop"?',['It takes a different route (GPe → STN) that ends in MORE GPi inhibition of the thalamus','The cortex sends it an inhibitory signal','Indirect striatal neurons excite GPi','Dopamine turns glutamate into GABA'],'Same excitatory input, opposite net effect because of the route.',1),
+  tp('In the indirect pathway, which structure does the striatum inhibit?',['GPe','GPi','STN','Thalamus'],'Striatum → GPe (not GPi!).',1),
+  tp('If the STN were destroyed, which pathway would lose its effect?',['Indirect','Direct','Both equally','Neither'],'STN is only in the indirect pathway. (Not on the slides as a case: applied from the circuit.)'),
+]);
+
+STAGE('Dopamine Breaks the Tie', 'Dopamine and plan selection (slides 10, 12, 13)', 'Tie', [
+  mc('What is the main effect of dopamine released by the SNc on the basal ganglia motor pathways?',['It facilitates the direct pathway and inhibits the indirect pathway, promoting movement','It inhibits both pathways equally, reducing all motor activity','It enhances the indirect pathway while suppressing the direct pathway, decreasing movement','It bypasses basal ganglia circuits and directly stimulates motor cortex neurons'],'In-lecture Q4.',1),
+  mc('Dopamine on D1 (direct) receptors is ___; on D2 (indirect) receptors it is ___.',['excitatory; inhibitory','inhibitory; excitatory','excitatory; excitatory','inhibitory; inhibitory'],'"Say yes louder and no much weaker."',1),
+  mc('Without dopamine, the vote on a plan tends to be:',['A weak yes and a strong no, so the plan is likely voted down','A strong yes and a weak no','Both silent','Always a tie that runs both plans'],'"Your yes will be a weak yes and your no will be a strong no."',1),
+  mc('Through BOTH pathways, dopamine ends up:',['Reducing GPi inhibition of the thalamus','Increasing GPi inhibition of the thalamus','Silencing the cortex','Exciting GPe'],'Slide 10 table chain: net less GPi inhibition in both pathways.',1),
+  od('Trace dopamine through the INDIRECT pathway.',['Dopamine inhibits D2 striatal neurons','Less striatal inhibition of GPe','GPe inhibits STN more','STN excites GPi less','Less GPi inhibition of thalamus'],'From her notes table.',1),
+  mc('The cortex proposes Plan A to:',['Both pathways at the same time','Only the direct pathway','Only the indirect pathway','Only the thalamus'],'Slide 12: excitatory signal to both.',1),
+  mc('If output of direct > indirect:',['Less thalamic inhibition → Plan A promoted → movement proceeds','More thalamic inhibition → Plan A suppressed','No change','The indirect pathway shuts off forever'],'The balance determines the outcome.',1),
+  mc('If output of indirect > direct:',['More thalamic inhibition → Plan A suppressed → movement blocked','Less thalamic inhibition → Plan A promoted','The thalamus excites cortex anyway','Dopamine rises'],'Slide 12.',1),
+  mc('You have jumped the puddle 100 times without fail. What happens to Plan A "jump"?',['Reward system ↑ SNc dopamine → potentiated direct, weakened indirect → likely selected','Reward system inhibits SNc → plan dropped','No dopamine change','The indirect pathway is potentiated'],'Repeated success / reward / novelty / salience.',1),
+  mc('You failed the jump 9 of 10 tries. What happens to Plan A?',['Reward system inhibits SNc → low dopamine → indirect potentiated → likely dropped','Dopamine surges → selected','Direct pathway potentiated','The thalamus is released'],'Repeated past failure.',1),
+  tp('Dopamine INHIBITS the indirect pathway. What is its net effect on movement through that pathway?',['It promotes movement (a weaker "no")','It reduces movement','No effect','It stops all movement'],'Slide 10 table: indirect + dopamine → output "Excites movement". Inhibiting the stop pathway helps go.',1),
+  tp('Dopamine excites D1 striatal neurons. Do those neurons then excite GPi?',['No: they inhibit GPi more, which releases the thalamus','Yes, they excite GPi','Yes, by way of the STN','No, they excite the thalamus directly'],'Excited D1 neurons release more GABA onto GPi.',1),
+  tp('Why is dopamine a tie breaker and not the decision maker?',['The cortex already sends both a yes and a no; dopamine only shifts the balance','Dopamine creates the plans','Dopamine directly fires motor neurons','Dopamine replaces the indirect pathway'],'"Dopamine = tie breaker." It carries the value of the plan.',1),
+  tp('Plan A has a high expected reward. What happens in the indirect pathway?',['Less striatal inhibition of GPe → more GPe inhibition of STN → less STN drive to GPi','More striatal inhibition of GPe','STN excites GPi more','GPe stops firing completely'],'From the notes\' chain for the indirect pathway with dopamine.',1),
+  tp('Low dopamine favors which pathway?',['Indirect (stop)','Direct (go)','Neither','Both equally'],'Low dopamine → weak yes, strong no.',1),
+  tp('Plan B has failed many times. What does the reward system do?',['Sends an inhibitory signal to the SNc → low dopamine → Plan B likely dropped','Raises dopamine to give B another chance','Excites the thalamus for B','Nothing: dopamine levels are constant'],'Slide 12: repeated past failure.'),
+]);
+
+STAGE('What Turns Up Dopamine', 'Four conditions that raise SNc dopamine (slide 14)', 'Boost', [
+  od('List the 4 conditions in slide order.',['Salience or reward prediction','Positive emotions','Practice and habit formation','Stimulant drugs'],'Slide 14.',1),
+  so('da','Waiting for med school acceptance news, you jump for your phone','sal','Dopamine rises when the brain predicts reward, even before it happens.',1),
+  so('da','A plan associated with high chance of reward, novelty, or importance','sal','Slide definition.'),
+  so('da','An excited, well-prepared presentation feels fluent','emo','Emotion changes how easily actions are released.',1),
+  so('da','Asking your boss for a raise when they’re in a good mood','emo','Her example.'),
+  so('da','Learning to drive until it becomes automatic','hab','Habit formation.',1),
+  so('da','Cortico-striatal synapses potentiated by repeated success','hab','Dopamine-dependent LTP.'),
+  so('da','Amphetamines and cocaine','drug','Pathological, not normal.',1),
+  so('da','Can cause hyperactivity or compulsive movements','drug','System over-biased toward "go".'),
+  mc('Practice and habit formation works through:',['Dopamine-dependent LTP at cortico-striatal synapses','Loss of striatal neurons','Direct thalamic excitation','Cerebellar learning only'],'Slide 14 item 3.',1),
+  mc('Once a habit forms, which structure can execute it with less cortical input?',['Dorsal striatum','Ventral thalamus','Subthalamic nucleus','Hypothalamus'],'Habit/automation: dorsal striatum.',1),
+  mc('With habit formation, SNc dopamine release may shift from ___ to ___.',['reward prediction; reinforcing habitual firing patterns','reinforcing habits; reward prediction','striatum; spinal cord','D1; D2 only'],'Slide 14.'),
+  mc('Early in learning, when does dopamine burst?',['After success ("this worked")','Only before any attempt','Only after failure','Never'],'Slide 14 item 3.'),
+  mc('Why do stimulant drugs change decisions and behavior?',['Direct pathway strengthened, indirect over-suppressed → system over-biased toward "go"','They block the thalamus','They destroy SNc neurons','They strengthen the indirect pathway'],'Behaviors that normally would not be selected get released too easily.',1),
+  mc('Overall: high dopamine promotes ___; low dopamine promotes ___.',['yes / go; no / stop','no; yes','sleep; wakefulness','sensation; movement'],'Dopamine adjusts how strongly BG answer "is this action worth doing?"',1),
+  tp('Which condition did she label pathological?',['Stimulant drugs','Positive emotions','Salience / reward prediction','Practice and habit formation'],'Slide 14 item 4: "pathological condition".',1),
+  tp('Dopamine spikes when you reach for your phone, before you know there\'s a notification. Why before?',['Salience / reward prediction raises dopamine before the reward happens','Dopamine only rises after a reward','It is a stimulant drug effect','Habit formation blocks dopamine'],'Her med school acceptance example.',1),
+  tp('A discouraged, worried speaker forgets words and gets stuck. Best explanation from this lecture?',['Less positive emotion → less dopamine → plans are harder to release','Too much dopamine','The thalamus is over-excited','The striatum is damaged'],'"Emotion literally changes how easily actions are released."'),
+]);
+
+STAGE('Parkinson’s Disease', 'Too much inhibition (slides 17 and 19)', 'PD', [
+  mc('Parkinson’s disease is caused by:',['Degeneration of dopaminergic neurons in the substantia nigra pars compacta','Expanded CAG repeats in HTT','Loss of thalamic neurons','Damage to the cerebellum'],'↓ dopamine to the striatum.',1),
+  mc('In Parkinson’s, the direct pathway is ___ and the indirect pathway is ___.',['underactive; overactive','overactive; underactive','normal; overactive','underactive; underactive'],'Slide 19: less movement initiation + more movement inhibition.',1),
+  mc('Her one-liner for Parkinson’s:',['Too much inhibition','Too little inhibition','Incorrect motor plan selection','Inappropriate motor plan release'],'BG send strong inhibition to the thalamus.',1),
+  od('Put the Parkinson’s logic in order (slide 19 flow).',['Dopamine loss','Pathway imbalance','Symptoms'],'Dopamine loss → pathway imbalance → symptoms.'),
+  so('pds','↓ Dopamine → weak direct pathway → slow movement initiation','brady','The primary symptom.',1),
+  so('pds','GPi over-inhibits the pedunculopontine nucleus (PPN)','rig','PPN normally inhibits muscle tone; tone goes too high.',1),
+  so('pds','Chronic hyperpolarization of thalamic neurons de-inactivates T-type Ca²⁺ channels','trem','Rhythmic, oscillatory firing instead of goal-directed excitation.',1),
+  so('pds','Impaired motor coordination and balance control','post','Delayed, mistimed plan release.'),
+  so('pds','Weak direct pathway → steps shorter and less forceful','gait','Feet look "stuck to the ground".'),
+  mc('Which structure does GPi over-inhibit to cause rigidity?',['Pedunculopontine nucleus (PPN)','Red nucleus','Cerebellum','Subthalamic nucleus'],'PPN normally inhibits motor tone → tone too high = rigidity.',1),
+  mc('Which channels are involved in Parkinson’s resting tremor?',['T-type Ca²⁺ channels in thalamic neurons, de-inactivated by hyperpolarization','Voltage-gated Na⁺ channels in muscle','NMDA receptors in the striatum','K⁺ channels in the cerebellum'],'Slide 19.',1),
+  mc('When does the Parkinson’s tremor happen?',['Only at rest','Only during intended movement','Only during sleep','Only when standing'],'"Remember or notice that the tremor only happens during resting stage."',1),
+  mc('What is the primary symptom of Parkinson’s, per her lecture?',['Bradykinesia','Chorea','Tics','Dementia'],'Patients can still move, but initiation takes much longer.',1),
+  mc('Which is NOT a Parkinson’s symptom on slide 17?',['Chorea','Mask-like facial expression','Shuffling gait','Resting ("pill-rolling") tremor'],'Chorea is Huntington’s.'),
+  mc('Why does the resting tremor reach the cortex even with no plan?',['Oscillating thalamic neurons excite cortex rhythmically ("misfiring")','The cortex fires spontaneously','The cerebellum takes over','Muscles twitch on their own'],'Rhythmic firing rather than goal-directed excitation.'),
+  tp('Parkinson\'s patients move slowly because their muscles are too weak to make force. True?',['False: they can move, but the "go" signal is weak, so starting takes longer','True','True, because lower motor neurons die','False: they have no muscle tone at all'],'Bradykinesia comes from a weak direct pathway, not muscle weakness.',1),
+  tp('In Parkinson\'s rigidity, muscle tone is ___ because the PPN, which normally ___ tone, is over-inhibited.',['increased; inhibits','decreased; excites','increased; excites','decreased; inhibits'],'GPi ⊣ PPN, and PPN normally inhibits tone → tone rises.',1),
+  tp('In Parkinson\'s, the thalamus is:',['Over-inhibited by GPi','Over-excited by GPi','Destroyed','Normal'],'Too much inhibition.',1),
+  tp('Which structure degenerates in Parkinson\'s?',['SNc (pars compacta)','Striatum','GPi','Thalamus'],'The striatum is intact but loses its dopamine input.',1),
+  tp('Which kind of substance in this lecture pushes the circuit the opposite way from Parkinson\'s?',['Stimulants that raise synaptic dopamine','GABA blockers in the cortex','Drugs that destroy the striatum','None'],'Stimulants over-bias toward "go". (Not on the slides: comparison inferred from slide 14 and slide 19.)'),
+]);
+
+STAGE('Huntington’s and Friends', 'HD, dystonia, Tourette (slides 17 and 20)', 'HD', [
+  so('dis','Expanded CAG repeats in the HTT gene','hd','Autosomal dominant.',1),
+  so('dis','Chorea: involuntary, dance-like movements','hd','Early HD.',1),
+  so('dis','Sustained or intermittent muscle contractions, twisting postures','dys','Dystonia.',1),
+  so('dis','Motor and vocal tics, onset in childhood','tour','Tourette.',1),
+  so('dis','May be worsened by stress or excitement','tour','Tourette.'),
+  so('dis','Varied causes: genetic, trauma, idiopathic','dys','Dystonia.'),
+  so('dis','Can affect one muscle group or be generalized','dys','Dystonia.'),
+  so('dis','Mask-like facial expression','pd','Parkinson’s.'),
+  mt('Match each disorder to her one-liner.',[['Parkinson’s','Too much inhibition'],['Huntington’s (early)','Too little inhibition'],['Dystonia','Incorrect motor plan selection'],['Tourette','Inappropriate motor plan release']],'From her notes table.',1),
+  mc('Huntington’s inheritance:',['Autosomal dominant: one mutated copy is enough','Autosomal recessive','X-linked','Not genetic'],'Slide 20.',1),
+  mc('Neuronal death in Huntington’s is especially in the:',['Caudate nucleus and putamen (striatum)','Substantia nigra pars compacta','Thalamus','Cerebellum'],'Also prefrontal cortex, STN, nucleus accumbens.',1),
+  mc('Why does losing the striatum disrupt the whole action-selection system?',['The striatum is the input zone','The striatum is the output zone','The striatum makes dopamine','The striatum drives the muscles'],'From her notes.'),
+  od('Order Huntington’s progression.',['Indirect pathway disrupted → chorea','Direct pathway affected → rigidity, bradykinesia','Cortical atrophy → cognitive and behavioral decline'],'Early → mid → late.',1),
+  mc('Early Huntington’s causes chorea because which pathway is hit first?',['Indirect (can’t say "no")','Direct (can’t say "yes")','Both equally','Neither: the cerebellum is hit first'],'"As if the brake system fails."',1),
+  so('hk','Early Huntington’s (chorea)','hyper','Hyperkinetic.',1),
+  so('hk','Mid/late Huntington’s (rigidity, bradykinesia)','hypo','Hypokinetic, Parkinson-like.',1),
+  so('hk','Parkinson’s disease','hypo','Too much inhibition.'),
+  so('hk','Stimulant drugs over-biasing "go"','hyper','Hyperactivity or compulsive movements.'),
+  mt('Match each HD-affected circuit to its BG input nucleus.',[['Motor loop','Putamen'],['Oculomotor loop','Caudate (body)'],['Prefrontal (cognitive) loop','Caudate (head)'],['Limbic loop','Ventral striatum (nucleus accumbens)']],'Slide 20 table.'),
+  mt('Match each HD symptom type to an example.',[['Motor','Chorea'],['Cognitive','Decline in executive function'],['Psychiatric','Irritability, mood swings']],'Slide 20 symptom table.'),
+  mc('Why is Huntington’s "not only a movement disorder"?',['BG loops reach prefrontal and limbic cortex, which also degenerate','Because it starts in the spinal cord','Because it only affects mood','Because the thalamus regenerates'],'"The basal ganglion are not only motor structures. They influence cognition and behavior as well."',1),
+  mc('Late-stage Huntington’s brings:',['Dementia, executive dysfunction, depression, apathy, emotional blunting','Pill-rolling tremor only','Childhood tics','Complete recovery'],'Cortical atrophy (prefrontal, temporal) and ventral striatum.'),
+  mc('When the basal ganglia "movement keeper" fails, movement:',['Becomes difficult, excessive, or uncontrolled','Disappears completely','Becomes normal','Only affects the eyes'],'BG give permission; they don’t control muscles directly.'),
+  tp('Late Huntington\'s looks like Parkinson\'s. Does that mean the dopamine neurons died?',['No: dying striatal neurons take out the direct pathway too','Yes: the SNc dies','Yes: Huntington\'s turns into Parkinson\'s','No: the thalamus is destroyed'],'Mid stage: damage spreads to the direct pathway → hypokinetic features.',1),
+  tp('Why does losing the INDIRECT pathway cause extra movement?',['The "no" vote is lost, so plans are released too easily','The direct pathway gets weaker','Dopamine falls','The thalamus is inhibited more'],'"As if the brake system fails."',1),
+  tp('Which disorder is caused by losing BG INPUT neurons, not the dopamine supply?',['Huntington\'s (striatum dies)','Parkinson\'s (SNc dies)','Both','Neither'],'HD: caudate + putamen. PD: SNc.',1),
+]);
+
+STAGE('Exam-Style Traps', 'Her quiz style: clinical cases, statement checks, close distractors', 'Exam', [
+  tp('A Parkinson’s patient’s levodopa dose is pushed too high, and they start making writhing involuntary movements. Which mechanism best explains this?',['Excess dopamine over-drives D1 cells and over-suppresses D2 cells in the striatum','Faster degeneration of caudate neurons','Faster loss of SNc neurons','An overactive indirect pathway'],'Too much dopamine pushes the system toward \"go\", so unwanted plans get through. Caudate loss is Huntington’s. (Modeled on your practice quiz.)',1),
+  tp('Description A: chooses which of several possible reaches gets executed. Description B: compares the ongoing movement with the intended one and corrects it. Which fits the basal ganglia?',['A only; B describes the cerebellum','B only; A describes the cerebellum','Both A and B','Neither'],'BG select; the cerebellum corrects execution. (Cerebellum is not in lecture 15: from your neuroanatomy notes.)',1),
+  tp('After SNc neurons degenerate, which change happens in the indirect pathway?',['The STN releases more glutamate onto GPi','GPi releases less GABA onto the thalamus','GPe fires more','D2 striatal neurons fire less'],'Low dopamine → D2 cells less inhibited → more inhibition of GPe → STN released → more glutamate → more GPi GABA onto the thalamus. (Modeled on your practice quiz.)',1),
+  tp('After a large stimulant dose, a student can’t stop fidgeting and repeating small movements. Best explanation?',['Excess dopamine biases the basal ganglia toward \"go\", so competing plans aren’t suppressed','The cerebellum takes over voluntary control','The stimulant destroys striatal neurons','The stimulant blocks sensory input to the thalamus'],'Slide 14: hyperactivity or compulsive movements.',1),
+  tp('A patient struggles to start walking and reaching, but planning, mood and eye movements are normal. Which BG input nucleus is most likely damaged?',['Putamen','Ventral striatum','Caudate (body)','Caudate (head)'],'Motor loop = putamen; oculomotor = caudate body; cognitive = caudate head; limbic = ventral striatum.',1),
+  tp('After practicing a skill until it succeeds reliably, which describes the basal ganglia change?',['The direct pathway is potentiated and disinhibits the thalamus','The direct pathway is potentiated and inhibits the thalamus','The indirect pathway is potentiated and disinhibits the thalamus','The indirect pathway is weakened, increasing thalamic inhibition'],'Watch the one-word traps: DISinhibits vs inhibits, and a weaker indirect pathway DEcreases thalamic inhibition.',1),
+  tp('True or false: deciding NOT to grab a hot pan handle is an example of direct pathway activity.',['False: suppressing an action is the indirect (stop) pathway','True: every decision uses the direct pathway','True: the direct pathway says no','False: the cerebellum makes that decision'],'Direct = go/yes; indirect = stop/no.',1),
+  tp('A patient becomes apathetic with emotional blunting. Which BG input nucleus fits best?',['Ventral striatum (nucleus accumbens)','Putamen','Caudate (body)','Caudate (head)'],'Limbic loop. (Case built from the slide 20 table.)',1),
+  tp('A patient has declining executive function but normal eye movements and normal movement initiation. Which input nucleus fits best?',['Caudate (head)','Caudate (body)','Putamen','Ventral striatum'],'Prefrontal (cognitive) loop = caudate head. Caudate BODY is the oculomotor loop. (Case built from the slide 20 table.)',1),
+  tp('Statement 1: GPi tonically inhibits the thalamus. Statement 2: Dopamine excites D2 striatal neurons. Which is accurate?',['Statement 1 is true; statement 2 is false','Both are true','Statement 2 is true; statement 1 is false','Both are false'],'Dopamine INHIBITS D2 neurons and excites D1 neurons.',1),
+  tp('Which are TRUE?  I. The STN is part of the indirect pathway.  II. The thalamus is part of the basal ganglia.  III. The SNc sends dopamine to the striatum.  IV. The striatum is the output zone.',['I and III','I, II and III','III and IV','I, III and IV'],'The thalamus is what BG influence, not part of them. The striatum is the INPUT zone; GP is the output zone.',1),
+  tp('Too much dopamine reaches the striatum. Which change follows?',['Decreased glutamate release from the subthalamic nucleus','Increased GABA release from GPi onto the thalamus','A weaker direct pathway','Increased firing of D2 striatal neurons'],'Dopamine inhibits D2 neurons → GPe released → GPe inhibits STN more → less glutamate. (The reverse of the low-dopamine quiz question.)',1),
+  tp('Which change best explains chorea in early Huntington’s disease?',['Loss of the indirect pathway, so less thalamic inhibition releases unwanted movements','Loss of SNc dopamine neurons','Increased GPi output to the thalamus','Overactivity of the indirect pathway'],'Indirect pathway first → the brake fails → hyperkinetic.',1),
+  tp('A patient’s GPi output is abnormally high. Which pair of symptoms fits?',['Bradykinesia and rigidity','Chorea and tics','Chorea and dance-like movements','Motor and vocal tics'],'High GPi output over-inhibits the thalamus (slow initiation) and the PPN (raised tone → rigidity).',1),
+  tp('What causes the Parkinson’s resting tremor?',['Rhythmic firing of chronically hyperpolarized thalamic neurons through de-inactivated T-type Ca²⁺ channels','An overactive direct pathway','GPi over-inhibiting the PPN','Loss of neurons in the caudate'],'GPi → PPN is the rigidity mechanism, a close distractor.',1),
+  tp('Statement 1: Huntington’s affects the direct pathway first. Statement 2: Huntington’s is autosomal dominant. Which is accurate?',['Statement 2 is true; statement 1 is false','Both are true','Statement 1 is true; statement 2 is false','Both are false'],'The indirect pathway is hit first (chorea); the direct pathway comes later.',1),
+  tp('A motor plan has failed repeatedly. Which is TRUE?',['The reward system inhibits the SNc, so the indirect pathway is potentiated and the plan is likely dropped','The indirect pathway weakens, increasing inhibition of the thalamus','Dopamine surges to retry the plan','The direct pathway is potentiated'],'The second option pairs \"indirect weakens\" with \"more inhibition\": those contradict each other.',1),
+  tp('Which statement about dopamine is FALSE?',['Dopamine directly triggers movement by exciting upper motor neurons','Dopamine acts mainly on the striatum','Dopamine can rise before a reward arrives','Dopamine reduces GPi inhibition of the thalamus through both pathways'],'Dopamine carries the value of a plan. It does not fire UMNs.',1),
+  tp('Which is the BEST one-line contrast between Parkinson’s and early Huntington’s?',['Parkinson’s: too much thalamic inhibition. Early Huntington’s: too little','Both: too much thalamic inhibition','Parkinson’s: too little inhibition. Huntington’s: too much','Both: loss of SNc dopamine'],'Her one-liners.',1),
+]);
+
+</script>
+<script>
+const KEY='l15climb_v1';
+const store = { get(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } },
+  set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(e){} } };
+let SAVE = Object.assign({stars:{}, miss:[], best:0, theme:null}, store.get());
+if (SAVE.theme) document.documentElement.setAttribute('data-theme', SAVE.theme);
+const ALL = STAGES.flatMap(s=>s.items);
+const byId = Object.fromEntries(ALL.map(i=>[i.id,i]));
+const app = document.getElementById('app');
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const starHTML = n => '<i>'+'★'.repeat(n)+'</i>'+'★'.repeat(3-n);
+
+/* ---------- home ---------- */
+function home(){
+  // Stage map: a descending pathway, cortex (top) to muscle (bottom); stops numbered in study order
+  const P=[[50,166],[105,40],[165,58],[222,76],[278,92],[330,106],[382,124],[430,144],[478,168]];
+  const curve = 'M50,166 C50,90 75,40 105,40 C135,40 145,52 165,58 C190,66 205,71 222,76 C245,83 260,87 278,92 C300,98 315,102 330,106 C350,112 365,118 382,124 C400,131 415,138 430,144 C450,152 465,160 478,168';
+  const dots = STAGES.map((s,i)=>{const [x,y]=P[i]; const done=(SAVE.stars[i]||0)===3; return `<g class="dot${done?' done':''}" data-stage="${i}" role="button" tabindex="0" aria-label="Stage ${i+1}: ${esc(s.name)}"><circle cx="${x}" cy="${y}" r="11"></circle><text x="${x}" y="${y}">${i+1}</text></g>`;}).join('');
+  const missN = SAVE.miss.filter(id=>byId[id]).length;
+  const diaN = ALL.filter(i=>i.trap).length;
+  const hyN = ALL.filter(i=>i.hy).length;
+  app.innerHTML = `
+  <div class="top"><span class="eyebrow">A&amp;P · Lecture 15</span><button class="ghost" id="theme">${themeLabel()}</button></div>
+  <div class="hero"><h1>Basal Nuclei Climb</h1><p>Nine stops around the basal ganglia loop: why the brain needs an action-selection committee, who sits on it, how GO and STOP vote, how dopamine breaks the tie, and what goes wrong in Parkinson’s and Huntington’s. The last stop is written like her quizzes: cases, statement checks and distractors that differ by one word.</p></div>
+  <div class="trace" aria-label="Stage map drawn as the cortex to basal ganglia to thalamus loop">
+    <svg viewBox="0 0 510 200" role="img">
+      <line class="grid" x1="10" y1="182" x2="500" y2="182"></line>
+      <text class="ax" x="96" y="20">cortex proposes</text><text class="ax" x="250" y="62">BG vote</text><text class="ax" x="400" y="110">dopamine</text><text class="ax" x="400" y="196">disorders · exam</text><text class="ax" x="14" y="196">why</text>
+      <path class="curve" d="${curve}"></path>${dots}
+    </svg>
+  </div>
+  <div class="modes">
+    <button class="mode" data-mode="hy"><b>High-Yield Run</b><span>${hyN} starred items, shuffled</span></button>
+    <button class="mode" data-mode="miss" ${missN?'':'disabled'}><b>Your Misses</b><span>${missN?missN+' to clear':'Nothing missed yet'}</span></button>
+    <button class="mode" data-mode="dia"><b>Trap Questions</b><span>${diaN} close-call and case questions</span></button>
+    <button class="mode" data-mode="mix"><b>Mixed 20</b><span>20 random from every stage</span></button>
+  </div>
+  <div class="eyebrow" style="margin-bottom:8px">Stages · ${ALL.length} questions</div>
+  <div class="stages">${STAGES.map((s,i)=>`<button class="stage" data-stage="${i}"><span class="mv">${s.mv}</span><span><h3>${i+1}. ${esc(s.name)}</h3><small>${esc(s.sub)} · ${s.items.length} Qs</small></span><span class="stars">${starHTML(SAVE.stars[i]||0)}</span></button>`).join('')}</div>
+  <p class="foot">Stars count first-try accuracy: 90% for three, 75% for two, 50% for one. Anything you miss comes back at the end of the run until you get it, and lands in Your Misses.</p>`;
+  app.querySelectorAll('[data-stage]').forEach(b=>{ const go=()=>startRun('stage',+b.dataset.stage); b.addEventListener('click',go); b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+  app.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.mode)));
+  document.getElementById('theme').onclick = toggleTheme;
+  // stages list top = last stage climbs upward visually? keep order 1..8 for reading.
+}
+function themeLabel(){ const t=document.documentElement.getAttribute('data-theme'); return t==='dark'?'Dark':t==='light'?'Light':'Auto'; }
+function toggleTheme(){ const r=document.documentElement; const t=r.getAttribute('data-theme'); const n = t===null?'dark':t==='dark'?'light':null; if(n) r.setAttribute('data-theme',n); else r.removeAttribute('data-theme'); SAVE.theme=n; store.set(SAVE); document.getElementById('theme').textContent=themeLabel(); }
+
+/* ---------- run ---------- */
+let R=null;
+function startRun(mode, stage){
+  let items, title;
+  if(mode==='stage'){ items = STAGES[stage].items.slice(); title = (stage+1)+'. '+STAGES[stage].name; }
+  else if(mode==='hy'){ items = shuffle(ALL.filter(i=>i.hy)); title='High-Yield Run'; }
+  else if(mode==='miss'){ items = shuffle(SAVE.miss.map(id=>byId[id]).filter(Boolean)); title='Your Misses'; }
+  else if(mode==='dia'){ items = shuffle(ALL.filter(i=>i.trap)); title='Trap Questions'; }
+  else { items = shuffle(ALL).slice(0,20); title='Mixed 20'; }
+  R = {mode, stage, title, queue: items.map(it=>({it, retry:false})), total: items.length, firstRight:0, firstDone:0, score:0, streak:0, missed:[], pos:0};
+  renderItem();
+}
+function mult(){ return Math.min(4, 1+Math.floor(R.streak/3)); }
+function hud(){
+  const done = R.firstDone; const pct = Math.round(100*done/R.total);
+  return `<div class="hud"><div class="hudrow"><button class="ghost" id="quit">← Map</button><span>${esc(R.title)}</span><span>${R.score} pts <span class="mult">×${mult()}</span></span></div>
+  <div class="bar"><i style="width:${pct}%"></i></div><div class="hudrow"><span>${Math.min(done+1,R.total)} / ${R.total}${R.queue[R.pos]&&R.queue[R.pos].retry?' · retry':''}</span><span>streak ${R.streak}</span></div></div>`;
+}
+function figHTML(key, item){
+  const d = DIA[key]; if(!d) return '';
+  const mask = d.mask!==false;
+  let boxes = '';
+  if(item && (item.t==='lb'||item.t==='nm')){
+    let tIdx = -1;
+    if(item.t==='nm'){ let k=0; d.b.forEach((b,i)=>{ if(b[4]===item.name){ if(k===item.idx) tIdx=i; k++; } }); }
+    // Only labels of the same kind as the target are covered; the rest stay visible as clues.
+    const g = item.t==='nm' ? (d.b[tIdx]||[])[5] : (d.b.find(b=>b[4]===item.name)||[])[5];
+    boxes = d.b.map((b,i)=>{
+      if(b[5]!==undefined && b[5]!==g) return '';
+      const cls = item.t==='lb' ? 'box tap' : (i===tIdx ? 'box target' : 'box');
+      if(!mask && item.t==='nm' && i!==tIdx) return '';
+      const tag = item.t==='lb' ? 'button' : 'div';
+      return `<${tag} class="${cls}" data-bi="${i}" data-name="${esc(b[4])}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" ${item.t==='lb'?'aria-label="covered label"':''}></${tag}>`;
+    }).join('');
+  }
+  return `<div class="fig ${mask?'':'nomask'}"><img src="${d.img}" alt="${esc(d.title)}">${boxes}</div><div class="figcap">${esc(d.title)}</div>`;
+}
+function renderItem(){
+  if(R.pos>=R.queue.length) return finish();
+  const {it, retry} = R.queue[R.pos];
+  const typeName = {mc:'Multiple choice',so:'Sort',od:'Order',mt:'Match',lb:'Tap the label',nm:'Name the box'}[it.t];
+  let body = '';
+  const tag = `<div class="tag">${typeName}${it.hy?' <span class="hy">high yield</span>':''}${it.trap?' <span class="hy">trap</span>':''}${retry?' · second chance':''}</div>`;
+  if(it.t==='mc'){
+    const opts = shuffle(it.o);
+    body = (it.ctx?`<div class="ctx">${esc(it.ctx)}</div>`:'') + (it.img?figHTML(it.img):'') + `<p class="q">${esc(it.q)}</p><div class="opts">${opts.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(it.t==='so'){
+    const S = SORTS[it.set];
+    body = `<p class="q">${esc(S.label)}</p><div class="sortitem">${esc(it.item)}</div><div class="cats">${S.cats.map(c=>`<button class="cat" data-key="${c[0]}" style="--cc:var(${c[2]})">${esc(c[1])}</button>`).join('')}</div>`;
+  } else if(it.t==='od'){
+    body = `<p class="q">${esc(it.q)}</p><div class="seq" id="seq"></div><div class="chips">${shuffle(it.steps).map(s=>`<button class="chip" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><div class="actions"><button class="ghostbtn" id="undo">Undo</button></div>`;
+  } else if(it.t==='mt'){
+    body = `<p class="q">${esc(it.q)}</p><div class="mtgrid"><div class="mtcol">${it.pairs.map(p=>`<button class="mtb L" data-v="${esc(p[0])}">${esc(p[0])}</button>`).join('')}</div><div class="mtcol">${shuffle(it.pairs.map(p=>p[1])).map(v=>`<button class="mtb Rr" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>`;
+  } else if(it.t==='lb'){
+    body = `<p class="q">Tap the covered label: <span style="color:var(--accent)">${esc(it.name)}</span></p>` + figHTML(it.dia,it);
+  } else if(it.t==='nm'){
+    const d=DIA[it.dia];
+    let opts;
+    if(it.o) opts = it.o.slice();
+    else { let ti=-1,k=0; d.b.forEach((b,i)=>{ if(b[4]===it.name){ if(k===it.idx) ti=i; k++; } }); const g=(d.b[ti]||[])[5]; const same=shuffle([...new Set(d.b.filter(b=>b[5]===g).map(b=>b[4]))].filter(n=>n!==it.name)); const other=shuffle([...new Set(d.b.map(b=>b[4]))].filter(n=>n!==it.name&&!same.includes(n))); opts=[it.ans, ...same.concat(other).slice(0,3)]; }
+    body = figHTML(it.dia,it) + `<p class="q">${esc(it.q||'Name the label in the orange box.')}</p><div class="opts">${shuffle(opts).map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  }
+  app.innerHTML = hud() + `<div class="card" id="card">${tag}${body}<div id="fb"></div></div>`;
+  document.getElementById('quit').onclick = ()=>{ R=null; home(); };
+  wire(it);
+  window.scrollTo(0,0);
+}
+function wire(it){
+  const card = document.getElementById('card');
+  if(it.t==='mc' || it.t==='nm'){
+    const right = it.t==='mc' ? it.o[0] : it.ans;
+    card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.v===right;
+      card.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.v===right) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      if(it.t==='nm'){ const t=card.querySelector('.box.target'); if(t){ t.classList.add('right'); } }
+      answer(ok, it.t==='nm' && !ok ? 'It was: '+it.ans : (ok?'':'Answer: '+right));
+    });
+  } else if(it.t==='so'){
+    card.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.key===it.key;
+      card.querySelectorAll('.cat').forEach(x=>{ x.disabled=true; if(x.dataset.key===it.key) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      const S=SORTS[it.set]; answer(ok, ok?'':'Answer: '+S.cats.find(c=>c[0]===it.key)[1]);
+    });
+  } else if(it.t==='lb'){
+    card.querySelectorAll('.box.tap').forEach(b=>b.onclick=()=>{
+      if(card.dataset.done) return; card.dataset.done=1;
+      const ok = b.dataset.name===it.name;
+      card.querySelectorAll('.box.tap').forEach(x=>{ x.disabled=true; if(x.dataset.name===it.name) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      answer(ok, ok?'':'The green outline shows where it is.');
+    });
+  } else if(it.t==='od'){
+    const seq=[]; const seqEl=document.getElementById('seq');
+    const draw=()=>{ seqEl.innerHTML = seq.map((s,i)=>`<div class="slot"><span>${i+1}</span><span>${esc(s)}</span></div>`).join(''); };
+    card.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+      seq.push(b.dataset.v); b.disabled=true; draw();
+      if(seq.length===it.steps.length){
+        const ok = seq.every((s,i)=>s===it.steps[i]);
+        seqEl.querySelectorAll('.slot').forEach((el,i)=>{ if(seq[i]!==it.steps[i]) el.classList.add('wrong'); });
+        document.getElementById('undo').disabled=true;
+        answer(ok, ok?'':'Correct order: '+it.steps.map((s,i)=>(i+1)+') '+s).join('  '));
+      }
+    });
+    document.getElementById('undo').onclick=()=>{ const v=seq.pop(); if(v==null) return; const c=[...card.querySelectorAll('.chip')].find(x=>x.dataset.v===v&&x.disabled); if(c) c.disabled=false; draw(); };
+  } else if(it.t==='mt'){
+    let selL=null; const made={};
+    const L=[...card.querySelectorAll('.mtb.L')], Rr=[...card.querySelectorAll('.mtb.Rr')];
+    L.forEach(b=>b.onclick=()=>{ if(b.classList.contains('paired')) return; L.forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); selL=b; });
+    Rr.forEach(b=>b.onclick=()=>{
+      if(!selL || b.classList.contains('paired')) return;
+      made[selL.dataset.v]=b.dataset.v; selL.classList.remove('sel'); selL.classList.add('paired'); b.classList.add('paired');
+      selL.textContent = selL.dataset.v+' → '+b.dataset.v; selL=null;
+      if(Object.keys(made).length===it.pairs.length){
+        const ok = it.pairs.every(p=>made[p[0]]===p[1]);
+        L.forEach(x=>{ const p=it.pairs.find(p=>p[0]===x.dataset.v); x.classList.add(made[p[0]]===p[1]?'right':'wrong'); });
+        answer(ok, ok?'':'Pairs: '+it.pairs.map(p=>p[0]+' → '+p[1]).join(' · '));
+      }
+    });
+  }
+}
+function answer(ok, extra){
+  const q = R.queue[R.pos];
+  if(!q.retry){
+    R.firstDone++;
+    if(ok){ R.firstRight++; }
+    else { R.missed.push(q.it.id); if(!SAVE.miss.includes(q.it.id)) SAVE.miss.push(q.it.id); }
+  }
+  if(ok){ R.score += 10*mult(); R.streak++; if(R.mode==='miss'||q.retry) SAVE.miss = SAVE.miss.filter(id=>id!==q.it.id); }
+  else { R.streak=0; R.queue.push({it:q.it, retry:true}); }
+  store.set(SAVE);
+  const fb = document.getElementById('fb');
+  fb.innerHTML = `<div class="fb ${ok?'ok':'no'}"><b>${ok?'Correct':'Not quite'}</b>${extra?esc(extra)+'<br>':''}${esc(q.it.why||'')}</div><button class="next" id="next">${R.pos+1<R.queue.length?'Next':'See results'}</button>`;
+  const n=document.getElementById('next'); n.onclick=()=>{ R.pos++; renderItem(); }; n.focus({preventScroll:true});
+  fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function finish(){
+  const acc = R.total? R.firstRight/R.total : 0;
+  const st = acc>=0.9?3:acc>=0.75?2:acc>=0.5?1:0;
+  if(R.mode==='stage'){ SAVE.stars[R.stage]=Math.max(SAVE.stars[R.stage]||0, st); }
+  SAVE.best=Math.max(SAVE.best||0,R.score); store.set(SAVE);
+  const missed=[...new Set(R.missed)].map(id=>byId[id]);
+  const label = it => it.t==='so'?it.item : (it.t==='lb'||it.t==='nm')? (it.q||'Label')+': '+it.ans : it.q;
+  app.innerHTML = `<div class="card result" style="margin-top:18px"><div class="eyebrow">${esc(R.title)}</div><h2>${st===3?'Summit':st===2?'Almost there':st===1?'Halfway up':'Keep climbing'}</h2>
+    <div class="big-stars">${starHTML(st)}</div>
+    <p class="stat">${R.firstRight}/${R.total} first try (${Math.round(acc*100)}%) · ${R.score} pts · best ${SAVE.best}</p>
+    ${missed.length?`<div class="eyebrow" style="margin-top:12px">Missed on first try</div><ul class="misslist">${missed.map(it=>`<li>${esc(label(it))}</li>`).join('')}</ul>`:''}
+    <div class="actions" style="margin-top:16px"><button class="next" id="again">Run it again</button><button class="ghostbtn" id="map">Back to map</button></div></div>`;
+  document.getElementById('again').onclick=()=>startRun(R.mode,R.stage);
+  document.getElementById('map').onclick=()=>{ R=null; home(); };
+}
+window.GAME = { cur: ()=> R && R.queue[R.pos] ? R.queue[R.pos].it : null, STAGES, DIA, SORTS, startRun, home };
+home();
+</script>
+</body></html>

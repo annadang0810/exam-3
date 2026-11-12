@@ -1,0 +1,657 @@
+<title>Microbiota Climb</title>
+<meta name="description" content="Lecture 17 review game: gut microbiota and health">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+
+/* Layout: one narrow column; home = a path from gut microbes to FMT, run = card + figure + choices */
+:root{
+  --bg:#EDF1EE; --panel:#FFFFFF; --panel2:#F6F8F6; --ink:#15201C; --muted:#5A6A64; --line:#CFD9D4;
+  --accent:#0C7A63; --accent-ink:#FFFFFF; --cover:#EE8A22; --cover-dim:#B9C4BF; --ok:#1C8A4B; --bad:#C2372C; --star:#D99A0B;
+  --c1:#2F6FB7; --c2:#8A5BB0; --c3:#0C7A63; --c4:#C9821A; --c5:#C4467E;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.box:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.hero h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.02;letter-spacing:-.01em;margin-top:6px}
+.hero p{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.trace{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px 4px;overflow:hidden}
+.trace svg{display:block;width:100%;height:auto}
+.trace .grid{stroke:var(--line);stroke-width:1}
+.trace .curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round}
+.trace .dot{cursor:pointer}
+.trace .dot circle{fill:var(--panel);stroke:var(--accent);stroke-width:2.5}
+.trace .dot.done circle{fill:var(--accent)}
+.trace .dot text{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.trace .dot.done text{fill:var(--accent-ink)}
+.trace .ax{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 22px}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.mode b{font-family:var(--display);font-weight:700;font-size:17px}
+.mode span{color:var(--muted);font-size:13px}
+.mode:disabled{opacity:.45;cursor:default}
+.stages{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%}
+.stage .mv{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--accent);font-variant-numeric:tabular-nums}
+.stage h3{font-size:18px;font-weight:700}
+.stage small{color:var(--muted);display:block;font-size:13px}
+.stars{font-size:16px;letter-spacing:2px;color:var(--line);white-space:nowrap}
+.stars i{font-style:normal;color:var(--star)}
+.foot{color:var(--muted);font-size:13px;margin-top:22px}
+/* run */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:flex;flex-direction:column;gap:8px}
+.hudrow{display:flex;align-items:center;gap:10px;justify-content:space-between;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.mult{color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:8px}
+.ctx{background:var(--panel2);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:15px}
+.tag{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tag .tr{color:var(--c2);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.tag .hy{color:var(--bad);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.q{font-size:18px;font-weight:700;margin:2px 0 12px;white-space:pre-line}
+.fig{position:relative;width:100%;margin:4px 0 4px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.fig img{display:block;width:100%;height:auto}
+.box{position:absolute;border-radius:3px;background:var(--cover-dim);border:0;padding:0}
+.box.target{background:var(--cover);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--cover)}
+.box.tap{background:var(--cover);cursor:pointer}
+.box.tap:hover{filter:brightness(1.08)}
+.nomask .box{background:transparent}
+.nomask .box.target{background:color-mix(in srgb,var(--cover) 14%,transparent);box-shadow:none;outline:3px solid var(--cover);outline-offset:-3px}
+.box.right{background:transparent!important;outline:3px solid var(--ok);outline-offset:-1px;box-shadow:none}
+.box.wrong{background:transparent!important;outline:3px solid var(--bad);outline-offset:-1px;box-shadow:none}
+.figcap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--panel))}
+.opt:disabled{cursor:default}
+.sortitem{font-size:18px;font-weight:700;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cat{border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 10%,var(--panel));border-radius:10px;padding:12px 10px;font-weight:700}
+.cat.right{outline:3px solid var(--ok);outline-offset:2px}
+.cat.wrong{outline:3px solid var(--bad);outline-offset:2px}
+.seq{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-height:20px}
+.seq .slot{font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));display:flex;gap:8px}
+.seq .slot.wrong{background:color-mix(in srgb,var(--bad) 14%,var(--panel))}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--panel2);border:1.5px solid var(--line);border-radius:999px;padding:8px 13px;font-size:15px}
+.chip:disabled{opacity:.3}
+.mtgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.mtcol{display:flex;flex-direction:column;gap:8px}
+.mtb{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.mtb.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.mtb.paired{opacity:.55}
+.mtb.right{border-color:var(--ok)} .mtb.wrong{border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:10px;padding:12px 14px;font-size:15px}
+.fb.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border:1px solid var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 10%,var(--panel));border:1px solid var(--bad)}
+.fb b{display:block;margin-bottom:2px}
+.next{margin-top:14px;width:100%;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px;font-weight:700;font-size:17px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .next{flex:1 1 160px;margin-top:0}
+.actions .ghostbtn{flex:1 1 160px;background:none;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-weight:700}
+.result h2{font-size:30px;margin:6px 0}
+.big-stars{font-size:38px;letter-spacing:6px;color:var(--line)} .big-stars i{font-style:normal;color:var(--star)}
+.stat{font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.misslist{margin:12px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+@media (max-width:440px){.stage{grid-template-columns:54px minmax(0,1fr) auto;gap:10px;padding:12px}.stars{font-size:13px;letter-spacing:1px}.cats{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+</style>
+<div class="wrap" id="app"></div>
+<script>
+const DIA = {};
+const STAGES = [];
+let _sid = 0;
+function STAGE(name, sub, mv, items){ const s = {name, sub, mv, items: items.flat()}; s.items.forEach((it,i)=>{ it.id = 's'+STAGES.length+'_'+i; it.stage = STAGES.length; }); STAGES.push(s); }
+function mc(q,o,why,red){ return {t:'mc',q,o,why,hy:!!red}; }
+function im(img,q,o,why,red){ return {t:'mc',img,q,o,why,hy:!!red}; }
+function so(set,item,key,why,red){ return {t:'so',set,item,key,why,hy:!!red}; }
+function od(q,steps,why,red){ return {t:'od',q,steps,why,hy:!!red}; }
+function mt(q,pairs,why,red){ return {t:'mt',q,pairs,why,hy:!!red}; }
+function lb(dia,name,why,red){ return {t:'lb',dia,name,why,hy:!!red}; }
+function nm(dia,name,why,red,q,x){ x=x||{}; return {t:'nm',dia,name,why,hy:!!red,q:q||null,o:x.o||null,ans:x.ans||name,idx:x.idx||0}; }
+function cs(text,steps,red,img){ return steps.map(s=>({t:'mc',ctx:text,img:img||null,q:s[0],o:s[1],why:s[2],hy:!!red})); }
+
+</script>
+<script>
+// ===== Lecture 17 content: Gut Microbiota & Health =====
+function T(x){ (Array.isArray(x)?x:[x]).forEach(i=>i.trap=true); return x; }
+
+const SORTS = {
+  sys: {label: 'Which body system does this dysbiosis-linked condition belong to (slide 3)?', cats: [['dig','Digestive / immune (GI)','--c3'],['met','Metabolic','--c4'],['imm','Immune','--c1'],['nerv','Nervous system','--c2']]},
+  brain: {label: 'How does it reach or affect the brain?', cats: [['dir','Directly (crosses the BBB)','--c1'],['ind','Only indirectly (vagus, immune, inflammation)','--c5']]},
+  gf: {label: 'Germ-free mice compared with controls: up or down?', cats: [['up','Increased','--c4'],['down','Decreased / weaker','--c1']]},
+  mech: {label: 'Which SCFA gene-regulation mechanism is this?', cats: [['hdac','1. HDAC inhibition','--c3'],['gpr','2. GPR signaling','--c2'],['coa','3. Acetate → acetyl-CoA (substrate)','--c4']]},
+  feed: {label: 'Prebiotic or fermented food?', cats: [['pre','Prebiotic (food for microbes)','--c3'],['fer','Fermented food (brings microbes in)','--c5']]},
+  fmt: {label: 'FMT evidence: where is it strongest?', cats: [['hum','Strong in humans','--c3'],['ani','Mainly in animals (limited / short-term in humans)','--c2']]},
+  scfa: {label: 'Which SCFA is this?', cats: [['ace','Acetate','--c1'],['pro','Propionate','--c4'],['but','Butyrate','--c5']]},
+};
+
+/* ---------- Stage 1 ---------- */
+STAGE('Who lives in your gut','Microbiota, colon, dysbiosis','P1', [
+  mc('What is the gut microbiota?',['The huge community of microorganisms (trillions) living in the GI tract','The lining cells of the colon','The enteric neurons that control the gut','Only the bacteria in the stomach'],'Slide 2: an enormous, complex ecosystem, "almost like a rainforest."'),
+  T(mc('Where do MOST gut microbes live?',['Large intestine (colon)','Stomach','Small intestine','Esophagus'],'Slide 2. The stomach is too acidic and the small intestine moves contents too fast.',1)),
+  mc('Which set of conditions explains why the colon suits microbes?',['Slow movement, abundant nutrients, limited oxygen','Fast movement, low nutrients, high oxygen','Strong acid, lots of oxygen, enzymes','Bile, oxygen, and fast transit'],'Slide 2: not flushed out, plenty of food, and most are anaerobic.',1),
+  T(mc('Why does LOW oxygen favor gut microbes?',['Most of them are anaerobic','Oxygen is used up by the ENS','Oxygen kills all bacteria','Low oxygen speeds motility'],'Notes, Part 1A table: "Very little oxygen → most are anaerobic."')),
+  mc('Which group makes up the MAJORITY of the gut microbiota?',['Bacteria','Viruses','Fungi','Archaea'],'Slide 2 checklist: "Bacteria (the majority)."'),
+  T(mc('The viruses in the gut are mostly:',['Bacteriophages (viruses that infect bacteria)','Viruses that infect colonocytes','Influenza viruses','Retroviruses that infect neurons'],'Slide 2: "Viruses (especially bacteriophages)."')),
+  T(mc('Which is NOT one of the 5 kinds of microbes listed on slide 2?',['Prions','Archaea','Fungi','Protozoa'],'The five: bacteria, archaea, viruses, fungi, protozoa.')),
+  T(mc('Which is NOT a function of gut microbiota? (in-lecture Q)',['Directly produce insulin to regulate blood glucose','Ferment dietary fiber to produce SCFA','Regulate immune responses','Synthesize certain vitamins (K, B vitamins)'],'They make GABA directly, but not insulin. (In-lecture answer D.)',1)),
+  mc('Which vitamins do gut microbes produce?',['Vitamin K and B vitamins','Vitamin D and A','Vitamin C and E','Vitamin A and K only'],'Slide 2: "vitamin K and Bs."'),
+  mc('Which pair are examples of microbe-made signaling molecules on slide 2?',['SCFA and GABA','Insulin and glucagon','Cortisol and adrenaline','Bile salts and pepsin'],'Slide 2: "Produce signaling molecules (SCFA, GABA etc.)."'),
+  T(mc('Why do gut microbes affect our cells at all?',['Their metabolic byproducts happen to act as signaling molecules on our cells; they are just trying to survive','They intentionally cooperate to keep us healthy','They secrete hormones designed for human receptors','They fuse with our epithelial cells'],'She stressed: microbes are not trying to help us. "They\'re just trying to survive."',1)),
+  T(mc('Microbial signaling molecules act:',['Both locally in the gut and systemically after absorption into the blood','Only locally in the colon','Only in the brain','Only in the liver'],'Slide 4: "act locally and systemically throughout the body."',1)),
+  mc('What is dysbiosis?',['An imbalanced or disturbed microbiota','Complete absence of microbes','Overgrowth of human cells','Normal healthy diversity'],'Notes, Part 1A.'),
+  mc('What is the big message of this lecture?',['Gut microbiota are a major determinant of health; dysbiosis affects many systems','Microbes only matter for digestion','The microbiota is fixed at birth','Microbes mainly cause disease'],'Notes: dysbiosis has effects on digestion, metabolism, immunity, brain and behavior.',1),
+  so('sys','Inflammatory bowel disease (Crohn\'s, ulcerative colitis)','dig','Slide 3: digestive and immune systems; ↓ diversity and ↓ beneficial bacteria.'),
+  so('sys','Irritable bowel syndrome (IBS)','dig','Slide 3: digestive (ENS); changes in motility, visceral sensitivity, ENS signaling.'),
+  so('sys','Obesity','met','Slide 3: metabolic; ↑ Firmicutes/Bacteroidetes ratio (some studies).'),
+  so('sys','Type 2 diabetes','met','Slide 3: metabolic; ↓ butyrate-producing bacteria.'),
+  so('sys','NAFLD (fatty liver)','met','Slide 3: metabolic / liver; dysbiosis altering bile acid metabolism.'),
+  so('sys','Allergies and asthma','imm','Slide 3: immune; ↓ microbial exposure and diversity early in life.'),
+  so('sys','Depression','nerv','Slide 3: altered microbial metabolites and neurotransmitter regulation.'),
+  so('sys','Autism spectrum disorder','nerv','Slide 3: altered diversity and metabolite production.'),
+  so('sys','Parkinson\'s disease','nerv','Slide 3: changes in gut microbial composition.'),
+  T(mc('Which dysbiosis change is linked to type 2 diabetes?',['Reduced butyrate-producing bacteria','Increased Firmicutes/Bacteroidetes ratio','Dysbiosis altering bile acid metabolism','Reduced exposure early in life'],'Slide 3. The F/B ratio is obesity; bile acids is NAFLD; early exposure is allergies.')),
+  T(mc('An increased Firmicutes/Bacteroidetes ratio is reported (in some studies) in:',['Obesity','Type 2 diabetes','IBS','Parkinson\'s disease'],'Slide 3. Note the hedge: "reported in some studies."')),
+  T(mc('Allergies and asthma are linked to which microbiota change?',['Reduced microbial exposure and diversity early in life','Too many microbes early in life','Increased butyrate producers','Bile acid changes'],'Slide 3. Ties to the LPS and tolerance points: early exposure trains the immune system.')),
+  mc('Which systemic effects did she call the MOST surprising?',['Nervous system (gut–brain axis)','Digestive','Metabolic','Skin'],'GI effects are intuitive, metabolic go further, immune are "kind of surprising," nervous system most surprising.'),
+  mc('Besides the ENS, what is "another major player" in the gut that constantly interacts with the ENS?',['The gut microbiota','The cerebellum','The thyroid','Skeletal muscle'],'Notes, Part 1A: link from Lecture 16.'),
+]);
+
+/* ---------- Stage 2 ---------- */
+STAGE('Chemical messengers','The signaling molecule table','P1', [
+  mt('Match each molecule to who makes it (slide 4).',[['SCFA','Many gut bacteria (Bifidobacterium, Firmicutes)'],['Serotonin','Host enterochromaffin cells, stimulated by microbes'],['GABA','Bifidobacterium, Lactobacillus'],['LPS','Gram-negative bacteria'],['Secondary bile acids','Gut bacteria modifying primary bile acids']],'Slide 4 "Produced by" column.',1),
+  T(mc('Who actually MAKES gut serotonin?',['Our own enterochromaffin cells, stimulated by microbes','Gut bacteria directly','Bifidobacterium and Lactobacillus','The liver'],'Microbiota do not make serotonin directly; they stimulate enterochromaffin cells. Slide 4 says "via host stimulation."',1)),
+  T(mc('Which neurotransmitter CAN gut microbes produce directly?',['GABA','Serotonin','Dopamine','Acetylcholine'],'She stressed: microbiota can directly produce GABA (Bifidobacterium, Lactobacillus).',1)),
+  T(mc('About 90% of body serotonin is made in the gut. Why doesn\'t it act directly on the brain?',['It cannot cross the blood–brain barrier','It is all destroyed by stomach acid','Microbes eat it','It is converted to GABA first'],'So it acts locally (motility, reflexes) and reaches the brain only indirectly.',1)),
+  T(mc('Gut serotonin mainly acts on:',['Local gut motility and reflexes','Mood directly in the cortex','Skeletal muscle','The pancreas only'],'Notes: acts mostly locally on motility and the Lecture 16 reflexes.')),
+  T(mc('Which tryptophan metabolite crosses the BBB and acts on the brain DIRECTLY?',['Kynurenine','Indoles','Serotonin','LPS'],'Kynurenine enters the blood, crosses the BBB. Indoles act indirectly.',1)),
+  so('brain','Kynurenine','dir','Notes: crosses the BBB, affects neural activity and mood.',1),
+  so('brain','Indoles','ind','Notes: via inflammation and the vagus nerve.',1),
+  so('brain','Gut serotonin','ind','Can\'t cross the BBB: vagus, immune, hormonal pathways.',1),
+  T(mc('Indoles influence the brain through:',['Inflammation and the vagus nerve (indirect)','Crossing the BBB','Being converted to dopamine in the gut','Direct synapses on cortex'],'Notes, indoles vs. kynurenine table.')),
+  mc('Indoles and kynurenine are both metabolites of which amino acid?',['Tryptophan','Tyrosine','Glutamate','Glycine'],'Slide 4: "Tryptophan metabolites (indoles, kynurenine pathway products)."'),
+  mc('What is GABA\'s key effect according to slide 4?',['Inhibitory neurotransmitter → ↓ neural excitability, influences anxiety and gut reflexes','Excitatory transmitter → ↑ motility only','Builds the gut barrier','Activates TLRs'],'She added: regulates stress response too.'),
+  T(mc('What is the TRUE statement about LPS?',['Low levels prime innate immunity; high levels cause systemic inflammation','LPS is always harmful at any level','LPS is made by Gram-positive bacteria','LPS strengthens the gut barrier'],'Slide 4 + notes: low-level exposure keeps immune cells "alert and ready" and helps prevent allergies, especially early in life.',1)),
+  T(mc('LPS is made by:',['Gram-negative bacteria','Gram-positive bacteria','Fungi','Enterochromaffin cells'],'Slide 4.')),
+  mc('What is LPS chemically?',['Sugar molecules with lipid chains','A short-chain fatty acid','A peptide hormone','A neurotransmitter'],'Notes: lipopolysaccharide.'),
+  mc('Peptidoglycan and other MAMPs act on immune cells through:',['TLRs and NOD receptors','GPR43','HDAC','FXR'],'Slide 4 "Main targets."'),
+  T(mc('Why does peptidoglycan "train" immune cells?',['It is found only on bacteria, so it is a foreign antigen','It is identical to human proteins','It is a vitamin','It feeds Tregs'],'Notes: early exposure is essential for immune development.')),
+  mc('What do bacteriocins do?',['Inhibit pathogenic bacteria → colonization resistance','Make vitamin K','Stimulate goblet cells','Cross the BBB'],'Slide 4. Microbes make them to beat competitors; it helps us too.'),
+  mc('Why do microbial vitamins matter for metabolism?',['They are cofactors metabolic enzymes need','They are fuel for colonocytes','They inhibit HDAC','They activate TLRs'],'Notes: without cofactors, metabolic enzymes can\'t work.'),
+  mc('Which molecule\'s targets include immune cells, gut epithelium, ENS, CNS and liver?',['SCFA','GABA','Bacteriocins','Vitamins'],'Slide 4: SCFA is highlighted and has the widest target list.',1),
+  T(mc('Which is NOT listed as a key effect of SCFA on slide 4?',['Directly crossing the BBB as a neurotransmitter','↑ regulatory T cells','Strengthen gut barrier','Support ENS neurons'],'Slide 4 SCFA effects: ↑ Tregs, strengthen barrier, support ENS neurons, regulate microglia, influence metabolism.')),
+  mc('Secondary bile acids are made when:',['Gut bacteria modify our primary bile acids','The liver makes them from fiber','Enterochromaffin cells release them','Paneth cells secrete them'],'Slide 4.'),
+  T(mc('Which molecule\'s main targets are "other microbes, gut environment" rather than our cells?',['Bacteriocins','SCFA','GABA','Kynurenine'],'Slide 4.')),
+  mc('Which molecule is the one she covered in DEPTH (others only as an overview)?',['SCFA','LPS','Bacteriocins','Secondary bile acids'],'Not required: other metabolites in depth. Still know the overview table.'),
+]);
+
+/* ---------- Stage 3 ---------- */
+STAGE('Fiber to SCFA','Fiber, fermentation, the 3 SCFAs','P1', [
+  T(mc('Name the 3 SCFAs she said to memorize.',['Acetate, propionate, butyrate','Acetate, lactate, pyruvate','Butyrate, succinate, citrate','Propionate, glutamate, GABA'],'"I need you to remember these three are the most potent components."',1)),
+  mc('What is dietary fiber?',['Plant-derived carbohydrate humans can\'t digest','Animal protein','A fat humans absorb in the small intestine','A vitamin'],'Slide 8.'),
+  T(mc('Which statement about dietary fiber is TRUE? (in-lecture Q)',['It is fermented by microbiota to produce signaling molecules','Humans digest it directly for energy','Fermentation occurs primarily in the small intestine','It is absorbed in the small intestine'],'In-lecture answer D. We lack the enzymes, so it reaches the large intestine.',1)),
+  T(mc('Why can\'t we use fiber even though we love glucose and fructose?',['We lack the enzymes to break the polymers into monomers','The monomers are toxic','Fiber is absorbed too fast','Fiber is destroyed by stomach acid'],'Notes, Part 1B.')),
+  mt('Match each fiber to what it is a polymer of.',[['Cellulose','Glucose (plant cell walls)'],['Inulin','Fructose (onions, asparagus, dandelion root)'],['Resistant starch','Glucose that resists digestion']],'Notes table. Trap: inulin is the fructose one.'),
+  T(mc('Inulin is a polymer of:',['Fructose','Glucose','Galactose','Amino acids'],'Notes: found in roots and bulbs like onions, dandelion root, asparagus.')),
+  T(mc('Why don\'t animals provide cellulose?',['Cellulose is in plant cell walls; animal cells have no cell wall','Animals digest all their cellulose','It is destroyed by cooking','Animals store it in the liver'],'Notes, fiber table.')),
+  mc('Where does fiber fermentation happen?',['Large intestine, where the microbes are','Stomach','Mouth','Small intestine'],'Slide 8: these pass undigested into the large intestine.',1),
+  mc('Define fermentation (slide 8).',['Anaerobic breakdown of nutrients by microbes to produce energy and metabolites','Aerobic digestion by human enzymes','Absorption of fats','Oxidation of glucose in mitochondria'],'Slide 8.'),
+  mc('Which two bacterial groups are the main fiber fermenters?',['Bacteroides and Firmicutes','Lactobacillus and E. coli','Clostridium and Salmonella','Archaea and fungi'],'Slide 8.'),
+  od('Put SCFA production in order.',['Dietary fiber eaten','Passes undigested to the large intestine','Anaerobic bacteria ferment it','Monosaccharides → pyruvate','SCFAs made (acetate, propionate, butyrate)'],'Slide 8 + fermentation pathway figure.'),
+  T(mc('In the fermentation pathway, the central hub most SCFA routes pass through is:',['Pyruvate','Butyrate','Amino acids','Lactate'],'Fiber → monosaccharides → phosphoenolpyruvate → pyruvate → SCFAs.')),
+  T(mc('Which SCFA can be made by the acrylate pathway (via lactate) OR the succinate pathway?',['Propionate','Butyrate','Acetate','None'],'Pathway figure: both routes end in propionate.')),
+  mc('Butyrate comes from which intermediate in the figure?',['Acetyl-CoA (and acetate can feed into butyrate)','Lactate','Succinate','Phosphoenolpyruvate directly'],'Notes, fermentation pathway.'),
+  mc('The Wood–Ljungdahl pathway makes:',['Acetate','Propionate','Butyrate','Lactate'],'Slide 8 figure.'),
+  T(mc('Can protein reach the colon and become SCFA?',['Yes: hard-to-digest proteins (collagen, elastin) → amino acids → pyruvate → SCFAs','No, SCFAs come only from fiber','Only in germ-free mice','Only in the stomach'],'Slide 8 figure: Proteins/Peptides → Microbiota → Amino acids.')),
+  so('scfa','Primary energy source for colonocytes','but','Slide 13: butyrate.',1),
+  so('scfa','Travels to the liver and influences metabolism','pro','Notes, SCFA table.'),
+  so('scfa','Converted to acetyl-CoA for histone acetylation','ace','Slide 6, mechanism 3.',1),
+  so('scfa','Especially increases fat oxidation','but','Notes, metabolism: "especially butyrate."'),
+  T(mc('Which SCFA is "especially" converted to acetyl-CoA?',['Acetate','Butyrate','Propionate','All equally'],'Slide 6, mechanism 3.',1)),
+  T(mc('Colonocytes have glucose available from the blood. Which fuel do they prefer?',['Butyrate (over 60–70% of their energy)','Glucose','Propionate','Ketones from the liver'],'They are "metabolically programmed" to prefer butyrate; glucose only when butyrate is low.',1)),
+  T(mc('A patient eats almost no fiber for months. Which change in the colon is MOST expected?',['Less butyrate → colonocytes grow and repair more slowly → weaker barrier','More SCFA from fiber stores','Faster epithelial turnover','More mucus'],'Low fiber → ↓ SCFA (slide 20). Without butyrate, growth and repair slow and the barrier is compromised (notes). (Applied prediction.)',1)),
+]);
+
+/* ---------- Stage 4 ---------- */
+STAGE('SCFA switch genes','HDAC, GPRs, acetyl-CoA','P1', [
+  T(mc('SCFAs influence gene expression PRIMARILY by: (in-lecture Q)',['Inhibiting HDAC','Activating mRNA splicing','Increasing DNA replication','Activating DNA polymerase'],'She called HDAC inhibition the most important mechanism. (She also accepted "activating transcription factors" via GPRs.)',1)),
+  T(mc('What does HDAC normally do?',['Removes acetyl groups from histones → DNA packs tightly → genes OFF','Adds acetyl groups → genes ON','Cuts DNA','Unwinds DNA for replication'],'Slide 6.',1)),
+  T(mc('SCFAs INHIBIT HDAC. What is the net result?',['Histones stay acetylated → chromatin open → genes ON','Histones lose acetyl groups → genes OFF','DNA sequence is changed','Transcription stops'],'Inhibiting the "off" enzyme turns genes on. Classic trap: "inhibit" ≠ "genes off."',1)),
+  mc('Which enzyme ADDS acetyl groups to histones (slide 6 figure)?',['HAT (histone acetyltransferase)','HDAC','GPR43','Acetyl-CoA'],'Slide 6 figure: HAT on the acetylation side. (Name "histone acetyltransferase" not spelled out on the slide.)'),
+  T(mc('Why is HDAC inhibition called "epigenetic"?',['It changes something attached to DNA (histones), not the DNA sequence','It mutates the DNA sequence','It changes chromosome number','It edits mRNA'],'Notes, Part 1B.')),
+  mc('Why does tightly packed DNA mean genes OFF?',['Transcription machinery can\'t reach the DNA','DNA is destroyed','Ribosomes are blocked','Histones degrade the DNA'],'Slide 6.'),
+  mc('Which receptors do SCFAs bind in mechanism 2?',['GPR41, GPR43, GPR109A','TLR4 and NOD2','FXR and TGR5','D1 and D2'],'Slide 6.',1),
+  T(mc('Which GPR did she say to memorize?',['GPR43','GPR41','GPR109A','GPR120'],'"GPR43 is pretty important... so maybe memorize that." It\'s the receptor SCFAs use to stimulate Paneth cells.',1)),
+  od('Order mechanism 2 (GPR signaling).',['SCFA binds a GPR on the cell surface','Intracellular signaling cascade','Transcription factors activated','Gene expression changes'],'Slide 6.'),
+  T(mc('Mechanism 3: acetate → acetyl-CoA. How does that change genes?',['Supplies acetyl groups for histone acetylation → open chromatin → genes ON','Blocks GPR43','Methylates DNA → genes OFF','Inhibits transcription factors'],'Same end result as HDAC inhibition but by a different route.')),
+  T(mc('Which mechanism is the "odd one out" because it does NOT work on histones?',['GPR signaling','HDAC inhibition','Acetate → acetyl-CoA','None; all act on histones'],'Memory hook: 1 and 3 work on histones; 2 works through a receptor.')),
+  so('mech','Blocks the enzyme that removes acetyl groups','hdac','Mechanism 1.'),
+  so('mech','Receptor → cascade → transcription factors','gpr','Mechanism 2.'),
+  so('mech','Provides raw material for histone acetylation','coa','Mechanism 3.'),
+  so('mech','Called the most important mechanism','hdac','Slide 6.',1),
+  so('mech','Works through GPR41/43/109A on the cell surface','gpr','Slide 6.'),
+  so('mech','Especially uses acetate','coa','Slide 6.'),
+  T(mc('A drug that ACTIVATES HDAC would have what effect on SCFA-driven genes?',['Oppose them: more deacetylation → tighter chromatin → genes OFF','Boost them','No effect','Make SCFAs bind GPR43 more'],'Reasoning from slide 6: SCFAs work by inhibiting HDAC. (Applied prediction, not a slide case.)')),
+  T(mc('Why do SCFA effects "profoundly" change what cells do?',['They act at the level of gene expression','They kill the cells','They change the DNA sequence','They act only on ion channels'],'Notes, Part 1B.')),
+  mc('GPR signaling by SCFAs affects which outcomes (per her notes)?',['Inflammation, metabolism, hormone production and release','Only DNA replication','Only mucus','Only bone growth'],'Notes, mechanism 2.'),
+]);
+
+/* ---------- Stage 5 ---------- */
+STAGE('Seal the barrier','4 SCFA barrier mechanisms, germ-free','P2', [
+  mt('Match each barrier mechanism to its target cell.',[['Strengthen tight junctions','Epithelial cells'],['Enhance mucus layer','Goblet cells'],['Fuel epithelial cells','Colonocytes'],['Induce antimicrobial peptides','Paneth cells']],'Slide 13 + notes table.',1),
+  T(mc('Which proteins do SCFAs increase to strengthen tight junctions?',['Claudins, occludin, ZO-1','Actin, myosin, troponin','Connexins and cadherins only','Collagen and elastin'],'Slide 13.',1)),
+  mc('Stronger tight junctions mean:',['↓ intestinal permeability → no "leaky gut"','↑ permeability','More bacteria cross','Less mucus'],'Slide 13.'),
+  T(mc('SCFAs stimulate PANETH cells through which receptor?',['GPR43','GPR41','GPR109A','TLR4'],'Slide 13 + her emphasis.',1)),
+  T(mc('Which cell makes MUCUS in response to SCFA?',['Goblet cells','Paneth cells','Colonocytes','Enterochromaffin cells'],'Trap: Paneth = defensins, goblet = mucus.',1)),
+  T(mc('Paneth cells release what when stimulated by SCFA?',['Defensins (antimicrobial peptides)','Mucus','Serotonin','IgA'],'Slide 13: ↑ defensins → kill or inhibit bacteria → limit invasion.',1)),
+  mc('What is a goblet cell?',['A single-cell epithelial gland that secretes mucus','A neuron','An immune cell that makes IgA','A muscle cell'],'Notes.'),
+  mc('What does the mucus layer do?',['Creates a physical barrier between microbes and epithelium','Digests fiber','Absorbs SCFA','Kills all bacteria'],'Slide 13.'),
+  mc('Butyrate supports colonocytes\' ...',['Growth, repair, and integrity','Mucus secretion','Defensin release','Serotonin release'],'Slide 13.'),
+  T(mc('Why is it useful to LIMIT microbes near the wall, even good ones?',['Overcrowding pushes on the wall and microbes eventually cross (invasion)','Good microbes make insulin','Microbes block absorption of all nutrients','They make the gut acidic'],'Notes, Part 2A.')),
+  T(mc('Which is NOT a way SCFAs strengthen the gut barrier?',['Increasing intestinal motility','Strengthening tight junctions','Enhancing mucus','Inducing antimicrobial peptides'],'Motility isn\'t one of the 4. She notes SCFAs can ↑ motility via a healthy ENS, but that isn\'t how they strengthen the barrier.',1)),
+  T(mc('Which scenario shows how microbiota support BOTH the gut barrier and neurons? (in-lecture Q)',['SCFA strengthen tight junctions, increase mucus, fuel epithelium; healthy microbiota increase BDNF','SCFA increase motility; microbiota decrease BDNF','SCFA reduce mucus; microbiota increase LPS to grow neurons','SCFA increase motility; microbiota increase HDAC activity'],'In-lecture answer B. The others contain a reversed arrow (↓ BDNF, ↓ mucus, ↑ HDAC).',1)),
+  so('gf','Tight junction strength','down','Slide 13: weaker → leaky barrier.'),
+  so('gf','Intestinal permeability','up','Weaker tight junctions → increased permeability.',1),
+  so('gf','Epithelial turnover and proliferation','down','Slide 13.'),
+  so('gf','Mucus layer thickness and organization','down','Thinner and less organized.'),
+  so('gf','Paneth cell defensin secretion','down','Slide 13.'),
+  T(mc('Germ-free mice have a weak barrier. Do they get bacterial overgrowth?',['No: there are no microbes to overgrow','Yes, massive overgrowth','Only of fungi','Only in the stomach'],'She pointed this out. In a normal animal, these defects WOULD cause overgrowth and invasion.')),
+  mc('Her 4-word summary of SCFA barrier effects:',['Seal, thicken, feed, defend','Open, thin, starve, invite','Digest, absorb, store, burn','Sense, relay, decide, act'],'Notes: seal tight junctions, thicken mucus, feed epithelium, defend against overgrowth.'),
+  T(mc('Lecture 16 link: goblet and Paneth cells are also targets of what?',['The submucosal plexus (ENS)','The myenteric plexus only','The corticospinal tract','Sympathetic chain only'],'Connections table: the ENS and the microbiota act on the same cells.')),
+  T(cs('A mouse is given an antibiotic that wipes out its gut bacteria for weeks.',[
+    ['What happens to SCFA levels in its colon?',['Fall sharply','Rise','No change','Only acetate rises'],'No fermenters, so no SCFAs. (Applied prediction.)'],
+    ['Its colonocytes would then rely more on:',['Glucose','Butyrate','Defensins','Mucus'],'Glucose is used only when butyrate is low.'],
+    ['What happens to barrier permeability?',['Increases (leakier)','Decreases','No change','Becomes zero'],'Loss of SCFA support for tight junctions. Mirrors germ-free mice.'],
+  ],1)),
+]);
+
+/* ---------- Stage 6 ---------- */
+STAGE('Gut to brain','BDNF, synapses, germ-free behavior','P2', [
+  mc('Which organs does the microbiota influence (slide 14)?',['Brain (hippocampus, amygdala), spinal cord, ENS','Only the ENS','Only the brainstem','Only the retina'],'Slide 14.'),
+  T(mc('Which bacteria does the slide name as "healthy microbiota" for neurons?',['Bifidobacteria','E. coli','Clostridium difficile','Salmonella'],'Slide 14: "Healthy microbiota (bifidobacteria)."')),
+  mc('BDNF stands for:',['Brain-derived neurotrophic factor','Basal dopamine nerve factor','Bacterial-derived neural fiber','Brain dendrite neuron filament'],'Slide 14.'),
+  mt('Match each microbiota effect to its result.',[['↑ BDNF','↑ neuron survival and neurogenesis'],['BDNF → dendritic growth, spine stability','↑ neuron function'],['SCFA → ↑ synaptic proteins and plasticity genes','↑ synapse and circuit maturation']],'Slide 14: survival → connection → function.',1),
+  T(mc('Healthy microbiota do what to BDNF?',['Increase it','Decrease it','Destroy it','Have no effect'],'Trap from the in-lecture Q: option A said "decrease BDNF."',1)),
+  mc('What is a neurotrophic factor?',['A factor that nurtures and feeds neurons','A neurotoxin','A neurotransmitter receptor','A myelin protein'],'Notes.'),
+  T(mc('Which effect is credited to SCFAs (not BDNF) on slide 14?',['↑ synaptic protein levels and genes for synaptic plasticity','↑ neuron survival','Dendritic branching','Spine stability'],'Slide 14 third bullet.')),
+  mc('Why do synaptic plasticity and circuits matter?',['They are the basis of learning and memory','They make mucus','They control insulin','They cause hypoplasia'],'Notes.'),
+  so('gf','BDNF expression','down','Slide 14 images: dimmer staining.',1),
+  so('gf','Nerve growth factor induced gene A','down','Slide 14: "very obvious" decrease.'),
+  so('gf','Dopamine D1 receptor','up','The odd one: increased in germ-free mice.',1),
+  T(mc('In germ-free mice, which gene went UP (the trap one)?',['Dopamine D1 receptor','BDNF','Nerve growth factor induced gene A','All went down'],'Slide 14.',1)),
+  T(mc('Her interpretation of the hyperactivity in germ-free mice:',['↑ D1 receptors → more direct (go) pathway activity (Lec 15)','↓ D1 → less movement','↑ GABA','Low serotonin in the brain'],'She said "I would say," so it is her interpretation, not a slide fact.')),
+  mc('The ENS in germ-free mice is:',['Hypoplastic (fewer, immature neurons) with disrupted motility, secretion and reflexes','Hyperplastic and overactive','Normal','Missing completely'],'Slide 14.',1),
+  T(mc('Which is NOT a germ-free behavior change on slide 14?',['Increased social interaction','Altered learning and memory','Hyperactivity-like behavior','Disrupted gut reflexes'],'Germ-free mice show REDUCED social interaction.')),
+  T(mc('If microbiota are introduced into germ-free mice, the abnormalities are:',['Partially reversed, especially if early in life','Fully reversed at any age','Made worse','Unchanged'],'Slide 14: "partially reversed." Watch the words "fully" and "any age."',1)),
+  mc('Altered learning and memory in germ-free mice suggests which brain area is affected?',['Hippocampus','Cerebellum','Medulla','Spinal cord'],'Notes.'),
+  T(mc('Lecture 16 link: why would a hypoplastic ENS disrupt the peristaltic reflex?',['The reflex needs healthy ENS sensory, inter- and motor neurons','Peristalsis is controlled by the cortex','The reflex only needs smooth muscle','The vagus does peristalsis alone'],'Connections table: microbiota support ENS neuron survival.')),
+  T(mc('She said HDAC activity "has nothing to do with" neuron survival. What\'s the exam point?',['SCFAs DECREASE HDAC activity, so "microbiota increase HDAC" is wrong','HDAC is required for BDNF','HDAC kills neurons','HDAC is a neurotransmitter'],'Notes, accuracy section: her statement is a simplification.')),
+]);
+
+/* ---------- Stage 7 ---------- */
+STAGE('Train the immune system','GALT, MAMPs, IgA, Tregs','P2', [
+  T(mc('About what fraction of immune cells live in the gut?',['Over 70%','About 10%','About 30%','Under 5%'],'Slide 16: "More than 70% of our immune system is located in our gut."',1)),
+  mc('Why are so many immune cells in the gut?',['To defend against microbes that cross the barrier','To digest fiber','To make SCFA','To produce bile'],'Notes.'),
+  mc('Her metaphor: the gut is the immune system\'s ___, and microbiota are the ___.',['Training ground; teachers','Prison; guards','Factory; workers','Battlefield; enemies'],'Notes.'),
+  T(mc('Key idea about immune development:',['The immune system needs constant stimulation to develop and maintain itself','The immune system is fully formed at birth','Microbes only suppress immunity','Sterility is ideal'],'Notes, Part 2B.',1)),
+  mt('Match each immune function to its microbial signal.',[['Training immune development','MAMPs: LPS, peptidoglycan, flagellin'],['Immune tolerance (Tregs)','SCFA, polysaccharide A'],['Colonization resistance','Bacteriocins, SCFA, nutrient competition'],['IgA production','Microbial antigens and metabolites']],'Slide 16 table.',1),
+  mc('MAMPs stands for:',['Microbial-associated molecular patterns','Mucosal antimicrobial proteins','Macrophage-activating membrane proteins','Microbial amino-acid metabolic products'],'Slide 16.'),
+  mc('Which receptors detect MAMPs?',['Pattern-recognition receptors: TLRs and NOD receptors','GPR41 and GPR43','D1 receptors','FXR/TGR5'],'Slide 16.'),
+  T(mc('Low-level, constant PRR activation by MAMPs causes:',['A basal "ready state" for fast response to invasion','Chronic disease','Immune exhaustion','Autoimmunity'],'Slide 16: stimulating immune readiness.')),
+  od('Order the IgA pathway.',['Microbial antigens presented','B cells activated','Class switching to IgA','IgA secreted into the lumen','IgA coats microbes and blocks epithelial invasion'],'Slide 16.'),
+  T(mc('Where does secretory IgA act?',['In the intestinal lumen, coating microbes','Inside neurons','In the liver','In the blood only'],'Slide 16.')),
+  T(mc('Which signals promote immune TOLERANCE?',['SCFA and polysaccharide A (Bacteroides fragilis)','LPS and flagellin','Bacteriocins','Bacterial DNA'],'Slide 16: they promote anti-inflammatory Tregs.',1)),
+  T(mc('How do SCFAs increase Tregs?',['Alter gene expression and epigenetic regulation in T cells','Kill effector T cells','Bind TLRs','Make IgA'],'Slide 16 mechanism, linking to HDAC inhibition.')),
+  mc('Why does tolerance matter for the whole body?',['Inflammation (overreaction) affects many body systems','It increases inflammation','It makes antibodies','It only matters in the skin'],'Notes.'),
+  T(mc('Why does early-life exposure matter for tolerance?',['The body tends to treat what it sees early as "self," learning what is harmless','Infants can\'t form any immune cells','Early microbes destroy the thymus','It doesn\'t matter'],'Notes: also ties to allergies/asthma on slide 3.',1)),
+  mc('How do commensal microbes provide colonization resistance?',['Occupy niches, consume nutrients, make antimicrobials, stimulate defenses','Increase gut permeability','Produce LPS at high levels','Block IgA'],'Slide 16.'),
+  so('gf','Gut-associated lymphoid tissue (GALT) development','down','Slide 16: underdeveloped.'),
+  so('gf','CD4⁺ T cells, especially Tregs','down','Slide 16 → more prone to inflammation.'),
+  so('gf','Macrophage and dendritic cell activity','down','Reduced innate immunity.'),
+  so('gf','Antibody production','down','Slide 16.'),
+  T(mc('In germ-free mice, which immunity is affected?',['Both adaptive and innate','Only adaptive','Only innate','Neither'],'"Weaker, immature, and poorly trained."',1)),
+  T(mc('Fewer Tregs in germ-free mice would make them:',['More prone to inflammation','Less prone to inflammation','Immune to allergies','Hyperimmune to pathogens'],'Tregs are anti-inflammatory.')),
+]);
+
+/* ---------- Stage 8 ---------- */
+STAGE('Burn or store','GLP-1/PYY, inflammation, metabolism','P2', [
+  mc('Microbiota influence how the body ___ energy.',['Extracts, stores, and uses','Only absorbs','Only burns','Only stores'],'Slide 17.'),
+  T(mc('Which gut hormones did she say are the MAIN appetite hormones to know?',['GLP-1 and PYY','Insulin and glucagon','Gastrin and secretin','Leptin and ghrelin'],'"I do want you to know these are the main hormones that can influence appetite."',1)),
+  od('Order the SCFA → appetite pathway.',['SCFAs reach enteroendocrine cells','SCFAs activate GPR41/GPR43','GLP-1 and PYY released','↓ appetite, slower stomach emptying, ↑ insulin secretion'],'Notes, SCFA metabolic effect 1.',1),
+  T(mc('What do GLP-1 and PYY do?',['↓ appetite, slow stomach emptying, ↑ insulin secretion','↑ appetite and speed emptying','↓ insulin secretion','Break down fiber'],'Notes, Part 2B.',1)),
+  T(mc('Lecture 16 link: which enteroendocrine cells make GLP-1?',['K/L cells','G cells','S cells','I cells'],'Connections table: K/L cells make GLP-1 and modulate insulin.')),
+  mt('Match each SCFA metabolic effect.',[['Gut hormones','↑ GLP-1/PYY'],['Insulin sensitivity','↓ inflammation, ↑ glucose uptake'],['Fat','↑ fat oxidation, ↓ fat accumulation'],['Barrier','fewer microbes/MAMPs leak → ↓ inflammation']],'Notes, SCFA in detail.'),
+  T(mc('Why does inflammation matter for glucose?',['Inflammation → insulin resistance → impaired glucose metabolism','Inflammation increases insulin sensitivity','Inflammation lowers glucose directly','It doesn\'t'],'She highlighted this in yellow: "I need you to realize the connection between inflammation and the metabolism."',1)),
+  T(mc('Which statement is FALSE? (in-lecture Q)',['Microbiota enhance the gut barrier, which increases inflammation','MAMPs stimulate immune signaling and development','Microbiota SCFA promote fat oxidation','Indoles and kynurenine decrease inflammation'],'A stronger barrier keeps microbes out → LESS inflammation. A leaky gut increases it. (Her answer D.)',1)),
+  T(mc('A stronger gut barrier leads to:',['Less inflammation, because fewer microbes and MAMPs leak in','More inflammation','No change in inflammation','More LPS in the blood'],'Notes, SCFA effect 4.',1)),
+  mc('Tryptophan metabolites help metabolism mainly by:',['↑ Tregs and ↑ barrier → ↓ inflammation → better insulin sensitivity','Directly making insulin','Burning fat','Making bile acids'],'Slide 17.'),
+  mc('Secondary bile acids affect metabolism by:',['↑ energy expenditure, ↑ GLP-1, regulating lipid metabolism','↓ energy expenditure','Making mucus','Blocking GLP-1'],'Slide 17. Receptor names (FXR/TGR5) are NOT required, per her.'),
+  T(mc('GABA and neuroactive molecules influence appetite through:',['The gut–brain axis (vagus nerve)','Crossing the BBB as serotonin','The liver only','IgA'],'Slide 17 + notes: ↓ appetite, ↑ energy expenditure.')),
+  mc('Which SCFA especially drives fat oxidation?',['Butyrate','Acetate','Propionate','Lactate'],'Notes.'),
+  T(mc('"Repetitive theme" across almost all the metabolites:',['They lower inflammation','They raise appetite','They increase fat storage','They inhibit GLP-1'],'Notes: gut microbes → inflammation level → metabolic health.',1)),
+  mc('Which is a metabolic defect in germ-free mice?',['Impaired glucose metabolism','Enhanced lipid metabolism','Excess vitamins','Excess secondary bile acids'],'Slide 17: altered lipid, impaired glucose, bile acid dysregulation, vitamin deficiencies.'),
+  T(mc('Why do germ-free mice have bile acid dysregulation?',['No bacteria to make secondary bile acids','Their liver makes no bile','Too many secondary bile acids','Bile can\'t leave the gallbladder'],'Notes.')),
+  T(mc('Which is NOT on the germ-free metabolic defect list?',['Increased insulin sensitivity','Altered lipid metabolism','Vitamin deficiencies','Bile acid dysregulation'],'Slide 17.')),
+  mc('Overall, microbiota affect metabolism by changing:',['Appetite, nutrient processing, storing vs burning fuel, and inflammation','Only fiber absorption','Only vitamin levels','Only body temperature'],'Notes summary.'),
+  T(cs('A person\'s gut has few butyrate-producing bacteria (as in type 2 diabetes on slide 3).',[
+    ['What happens to GLP-1/PYY release?',['Decreases','Increases','No change','Only PYY rises'],'Less SCFA to activate GPR41/43. (Applied prediction.)'],
+    ['Expected effect on the barrier and inflammation?',['Weaker barrier → more inflammation','Stronger barrier → less inflammation','No change','Barrier stronger but inflammation higher'],'Butyrate fuels colonocytes; less of it weakens the barrier.'],
+    ['So insulin sensitivity tends to:',['Decrease','Increase','Stay the same','Become irrelevant'],'Inflammation → insulin resistance.'],
+  ],1)),
+]);
+
+/* ---------- Stage 9 ---------- */
+STAGE('Build, keep, transplant','Birth to adult, lifestyle, FMT','P2', [
+  T(mc('Where do the very first gut microbes come from?',['Birth: the womb is essentially germ-free','The womb, inherited before birth','Genes','The placenta'],'Birth is the first major microbial seeding event.',1)),
+  T(mc('Which statement is TRUE? (in-lecture Q)',['Early-life factors like delivery mode and diet influence microbiota establishment','The microbiota is fully established at birth and inherited from the mother','FMT is a first-line treatment for metabolic diseases','Avoiding microbial exposure early strengthens immune function'],'Her answer E. "Inherited" means genetic; the microbiota is just passed on.',1)),
+  mt('Match delivery or feeding to what the baby gets.',[['Vaginal delivery','Maternal vaginal + gut microbes (Lactobacillus, Bifidobacterium)'],['C-section','Mainly skin and environmental microbes'],['Breast milk','Beneficial bacteria + HMOs'],['Formula','A different microbial composition']],'Slide 19.',1),
+  T(mc('What are human milk oligosaccharides (HMOs) for?',['Feeding beneficial microbes like Bifidobacterium; the baby can\'t digest them','Feeding the baby directly','Killing all bacteria','Making IgA'],'She stressed: they exist only to feed microbes.',1)),
+  mc('Possible consequences of C-section (some studies):',['Slower microbiota development, altered immune training, ↑ allergies, asthma, metabolic disorders','Faster microbiota development','No effect at all','Guaranteed autism'],'Notes, Part 2C.'),
+  T(mc('Why don\'t infant stomach acids kill the new microbes?',['Infant stomach is less acidic, milk buffers acid, liquid food moves fast','Infant stomach is more acidic','Microbes skip the stomach','Bacteria are made in the colon'],'Notes: the infant gut is "very welcoming."')),
+  od('Order the stages of microbiota establishment.',['Colonization at birth','Early feeding (breast or formula)','Rapid development in infancy','Weaning to solid food','Stabilization (~2–3 years)','Lifelong modulation'],'Slide 19.',1),
+  T(mc('By about what age is the microbiota adult-like and relatively stable?',['~2–3 years','At birth','~6 months','~12 years'],'Slide 19.',1)),
+  mc('What causes the MAJOR shift at weaning?',['Solid foods with complex carbs and fiber → more fiber-fermenting, SCFA-producing bacteria','Stopping all feeding','More breast milk','Antibiotics'],'Slide 19.'),
+  T(mc('After stabilization, can the microbiota still change?',['Yes: diet, antibiotics/medications, lifestyle/environment, disease','No, it is fixed for life','Only with surgery','Only in old age'],'Slide 19: lifelong modulation.')),
+  T(mc('What is the MOST powerful factor for a healthy microbiota?',['Diet','Exercise','Sleep','Genetics'],'Slide 20.',1)),
+  T(mc('What is a key marker of good gut health?',['Diversity','Total bacterial number','Firmicutes dominance','Low fiber'],'"Diversity is a key marker for good gut health."',1)),
+  so('feed','Inulin','pre','Slide 20: prebiotic.'),
+  so('feed','Resistant starch','pre','Slide 20.'),
+  so('feed','Yogurt','fer','Slide 20.'),
+  so('feed','Kimchi','fer','Slide 20.'),
+  so('feed','Kefir','fer','Slide 20.'),
+  T(mc('A low-fiber, high-sugar diet does what?',['Low fiber → ↓ SCFA; high sugar favors harmful microbes → ↓ diversity','Increases diversity','Increases SCFA','Has no effect'],'Slide 20. The in-lecture trap: low fiber does NOT promote diversity.',1)),
+  T(mc('How does chronic stress alter the microbiota?',['↑ sympathetic, ↓ parasympathetic (vagal tone) → changes motility, secretion, blood flow, habitat','↑ vagal tone','Kills microbes directly','Increases fiber intake'],'Slide 20. Ties to Lecture 16: sympathetic inhibits the ENS.',1)),
+  mc('Why use antibiotics only when necessary?',['They kill microbes non-specifically, disrupting the microbiota','They feed harmful bacteria','They raise SCFA','They block HMOs'],'Slide 20 + notes.'),
+  mc('How does sleep help the microbiota?',['Circadian rhythm controls feeding–fasting, hormone and immune cycles, so microbes aren\'t constantly adjusting','Sleep increases fiber','Sleep kills pathogens','Sleep makes SCFA'],'Slide 20.'),
+  mc('How might exercise help (her explanation)?',['↑ diversity; improves gut movement and blood flow → healthy epithelium → ↓ inflammation','It increases stress','It reduces gut blood flow','It sterilizes the gut'],'Notes.'),
+  mc('Define FMT.',['Transfer of processed stool from a healthy donor into a recipient\'s GI tract','Removing the colon','Giving antibiotics','A probiotic pill only'],'Slide 21.'),
+  mc('The goal of FMT is to shift the patient from ___ to ___.',['Dysbiosis; eubiosis','Eubiosis; dysbiosis','Health; disease','Germ-free; sterile'],'Slide 21 figure.'),
+  od('Order the FMT process.',['Donor screening','Stool collection (test for pathogens)','Packing (choose capsule or enema)','Administration and monitoring'],'Slide 21 process.'),
+  T(mc('For which condition is FMT highly effective in humans?',['Recurrent C. difficile (~80–90% cure)','Obesity','Depression','Autism'],'Slide 21 table.',1)),
+  so('fmt','Recurrent C. difficile infection','hum','~80–90% cure.',1),
+  so('fmt','Obesity / lean phenotype transfer','ani','Humans: some short-term insulin sensitivity improvement.'),
+  so('fmt','Anxiety and social behavior transfer','ani','Animals: strong. Humans: limited.'),
+  T(mc('Why are FMT\'s metabolic benefits in humans short-term?',['Transplanted microbes don\'t stay without a lifestyle that supports them','The donor stool is toxic','Insulin destroys them','They only work in mice'],'They need to become "long-term residents."')),
+  T(mc('Why is FMT NOT first-line for metabolic disease?',['Effects are inconsistent and short-term','It cures 90%','It is illegal','It causes diabetes'],'In-lecture Q option B is false.')),
+  T(mc('What does FMT in animals show that correlation studies can\'t?',['Microbiota can be CAUSAL: transferring them transfers obesity, anxiety, social behavior','Microbes are harmless','Genes cause obesity','FMT always fails'],'She stressed causality.',1)),
+  mc('Main FMT risk requiring strict donor screening:',['Transferring harmful organisms, including drug-resistant (MDR) bacteria','Too much fiber','Loss of BDNF','Vitamin overdose'],'Slide 21 figure: MDR organisms infection risk.'),
+  od('Order how recurrent C. diff develops.',['Antibiotics wipe out normal microbiota','C. difficile overgrows in the "empty" colon','Toxins damage the lining','Inflammation and diarrhea'],'Notes, Part 2C.'),
+  mc('Life-threatening complication of severe C. diff:',['Toxic megacolon','Hirschsprung\'s disease','Achalasia','Gastroparesis'],'Notes.'),
+  T(mc('IBD vs. IBS: which is TRUE?',['IBD has structural damage; IBS has disrupted function without visible structural damage','IBS has structural damage; IBD doesn\'t','Both are identical','Neither involves the gut'],'Notes, Part 2C.')),
+  mc('FMT history on the slide:',['Started ~1,700 years ago in China as "yellow soup"','Invented in 2010','Started in ancient Egypt','First done on astronauts'],'Slide 21.'),
+]);
+
+/* ---------- Stage 10: her quiz style ---------- */
+STAGE('Her trap questions','Scenarios, I–IV combos, two-statement checks','Mix', [
+  T(mc('A student recalls: 1. SCFAs inhibit HDAC, keeping histones acetylated. 2. SCFAs activate HDAC, packing DNA tightly so SCFA-responsive genes turn on. Which best describes these statements?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'Inhibiting HDAC keeps chromatin open → genes ON. Statement 2 flips both the enzyme effect and the packing logic.',1)),
+  T(mc('Which of the following are TRUE?\nI. Microbes directly synthesize most gut serotonin\nII. Microbes can directly synthesize GABA\nIII. Kynurenine crosses the blood–brain barrier\nIV. Gut serotonin acts directly on the brain',['II and III','I and II','II, III, and IV','I, II, and III'],'I is false (enterochromaffin cells make it). IV is false (it can\'t cross the BBB).',1)),
+  T(mc('A child born by C-section and fed formula develops asthma at age 4. Which explanation best fits the lecture?',['Less early microbial exposure and diversity → poorer immune training and tolerance','C-section gives the baby more maternal gut microbes','Formula contains more HMOs than breast milk','Asthma is caused by too much Bifidobacterium'],'Slide 3: allergies/asthma ↔ ↓ exposure and diversity early in life. C-section → skin/environmental microbes; formula → different composition.',1)),
+  T(mc('A patient on a long course of broad-spectrum antibiotics develops watery diarrhea, fever and cramps that recur after standard treatment. What is the most likely mechanism?',['Antibiotics emptied the colon of normal microbiota, letting C. difficile overgrow and release toxins','Antibiotics directly damaged enteric neurons','Excess butyrate inflamed the colon','Too many bacteriocins killed C. difficile'],'Notes, Part 2C. Next step when standard treatment fails: FMT (~80–90% cure).',1)),
+  T(mc('Germ-free mice show hyperactivity-like behavior. Which explanation matches her interpretation?',['Increased D1 receptor expression strengthens the direct (go) pathway','Decreased D1 receptors weaken the direct pathway','Increased BDNF overexcites the cortex','Increased GABA from microbes'],'Slide 14: D1 ↑. Lec 15: D1 = direct pathway. (Her interpretation, "I would say.")',1)),
+  T(mc('True or False: Because SCFAs strengthen the gut barrier, a person with a strong barrier should have MORE systemic inflammation from trapped microbes.',['False','True'],'Stronger barrier → fewer microbes and MAMPs leak in → LESS inflammation.',1)),
+  T(mc('True or False: Fiber fermentation happens mainly in the small intestine because that is where most absorption occurs.',['False','True'],'Fermentation happens where the microbes are: the large intestine.')),
+  T(mc('True or False: Gut microbes help us intentionally because they depend on a healthy host.',['False','True'],'She stressed they are "just trying to survive"; their byproducts happen to signal to us.')),
+  T(mc('Which pairing is correct?',['Paneth cells → defensins via GPR43','Goblet cells → defensins via GPR43','Paneth cells → mucus via GPR41','Colonocytes → mucus via butyrate'],'Goblet = mucus; Paneth = defensins (GPR43); colonocytes burn butyrate.',1)),
+  T(mc('Which pairing is correct?',['Butyrate → main fuel of colonocytes','Propionate → main fuel of colonocytes','Acetate → mostly goes to the liver','Butyrate → converted to acetyl-CoA for histones (the "especially" SCFA)'],'Propionate goes to the liver; acetate is the one "especially" converted to acetyl-CoA.',1)),
+  T(mc('Which pairing is correct?',['Inulin → fructose polymer, prebiotic','Inulin → glucose polymer, fermented food','Cellulose → fructose polymer','Resistant starch → protein'],'Notes fiber table + slide 20.')),
+  T(mc('A drug blocks GPR43 in the gut. Which effect is MOST expected?',['Reduced defensin release from Paneth cells and less GLP-1/PYY release','Loss of HDAC inhibition by SCFAs','No more SCFA production','Increased mucus from goblet cells'],'GPR43 drives Paneth cells (slide 13) and, with GPR41, GLP-1/PYY (metabolism notes). HDAC inhibition and fermentation don\'t need GPR43. (Applied prediction.)',1)),
+  T(mc('Which of the following are TRUE about germ-free mice?\nI. BDNF is decreased\nII. Dopamine D1 receptor is decreased\nIII. They show reduced social interaction\nIV. They develop massive bacterial overgrowth',['I and III','I, II, and III','I, III, and IV','III only'],'D1 is INCREASED. No microbes means no overgrowth.',1)),
+  T(mc('Which of the following are TRUE about the immune system of germ-free mice?\nI. Underdeveloped GALT\nII. More regulatory T cells\nIII. Reduced macrophage and dendritic cell activity\nIV. Reduced antibody production',['I, III, and IV','I and II','II, III, and IV','I, II, III, and IV'],'Tregs are REDUCED (slide 16).')),
+  T(mc('A researcher transfers gut microbiota from obese mice into lean germ-free mice, and the recipients gain fat. What does this most strongly show?',['Microbiota can be causal for the phenotype, not just associated','Obesity is purely genetic','FMT is first-line therapy for human obesity','Germ-free mice cannot store fat'],'Slide 21: transfer of obesity or lean phenotype in animals. Human metabolic benefit is short-term.',1)),
+  T(mc('A patient receives FMT for metabolic syndrome and improves insulin sensitivity, but loses the benefit months later. Best explanation?',['The transplanted microbes didn\'t persist without a diet and lifestyle that support them','FMT always causes insulin resistance','The donor stool contained MDR bacteria','Insulin destroyed the transplanted microbes'],'They need to become "long-term residents."')),
+  T(mc('A student recalls: 1. Microbes stimulate enterochromaffin cells to make serotonin, which mainly controls local gut motility. 2. Indoles cross the blood–brain barrier to affect mood directly. Which is accurate?',['Statement 1 is accurate; statement 2 is not (that describes kynurenine)','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'Indoles act indirectly (inflammation, vagus); kynurenine is the direct one.',1)),
+  T(mc('A student recalls: 1. HMOs in breast milk are a major energy source for the infant. 2. Vaginal delivery exposes the infant to maternal vaginal and gut microbes. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'The baby can\'t digest HMOs; they feed Bifidobacterium.',1)),
+  T(mc('A person under chronic work stress develops altered bowel habits and a changed microbiota. Which mechanism best explains this?',['↑ sympathetic and ↓ vagal tone change motility, secretion and blood flow, altering the microbial habitat','↑ parasympathetic tone speeds motility and adds fiber','Stress hormones directly digest fiber','Stress increases HMOs'],'Slide 20 + Lec 16: sympathetic inhibits the ENS.',1)),
+  T(mc('Which best explains why a high-fiber diet can improve insulin sensitivity?',['More SCFA → ↑ GLP-1, stronger barrier and ↑ Tregs → ↓ inflammation → less insulin resistance','Fiber is absorbed and directly lowers glucose','Fiber makes the pancreas produce more insulin directly','Fiber increases LPS in the blood'],'Inflammation → insulin resistance → glucose metabolism (the highlighted theme).',1)),
+  T(mc('Which statement is FALSE?',['Microbiota strengthen the barrier by increasing intestinal motility','SCFAs increase claudins, occludin and ZO-1','SCFAs stimulate goblet cells to make mucus','Butyrate supports colonocyte repair'],'Motility is not one of the 4 barrier mechanisms.',1)),
+  T(mc('Which statement is FALSE?',['Low levels of LPS are always harmful and should be avoided early in life','High LPS levels cause systemic inflammation','LPS comes from Gram-negative bacteria','Early LPS exposure helps prevent allergies'],'Low-level exposure keeps innate immunity "alert and ready," especially early in life.',1)),
+  T(mc('Which statement is FALSE?',['Microbiota directly produce insulin to regulate blood glucose','Microbiota raise insulin secretion indirectly via GLP-1','Microbiota synthesize vitamin K','Microbiota ferment fiber into SCFA'],'In-lecture Q: the indirect GLP-1 route is real; direct insulin production is not.',1)),
+  T(mc('Which statement is FALSE?',['The gut microbiota is fully set at birth and inherited from the mother','It becomes adult-like by about 2–3 years','Weaning causes a major shift','Diet keeps shaping it for life'],'In-lecture Q option A. "Inherited" implies genetic; it is passed on, and takes years.',1)),
+  T(mc('In type 2 diabetes, reduced butyrate producers are found. Which chain links this to high blood glucose?',['↓ butyrate → weaker barrier, fewer Tregs → ↑ inflammation → insulin resistance','↓ butyrate → more GLP-1 → hypoglycemia','↓ butyrate → more HDAC inhibition → more insulin','↓ butyrate → less bile acid → no glucose absorption'],'Builds the lecture\'s inflammation–metabolism link. (Applied chain.)',1)),
+  T(mc('An infant has an unusually acidic stomach and is fed thick solid food very early. Based on the lecture, what might happen to colonization?',['Fewer microbes survive to colonize the gut','Faster colonization','No difference','More HMOs reach the colon'],'Normally the infant stomach is less acidic, milk buffers acid, and liquid moves fast, which lets microbes through. (Applied prediction.)')),
+  T(mc('Which of the following are TRUE about SCFA and gene expression?\nI. HDAC inhibition is the most important mechanism\nII. GPR signaling activates transcription factors\nIII. Acetate can supply acetyl groups via acetyl-CoA\nIV. SCFAs change the DNA sequence',['I, II, and III','I and II','I only','I, II, III, and IV'],'All three mechanisms are epigenetic or signaling; none changes the sequence.',1)),
+  T(mc('Which of the following are TRUE about FMT?\nI. ~80–90% cure for recurrent C. difficile\nII. First-line therapy for metabolic disease\nIII. Animal studies transfer anxiety-like behavior\nIV. Donors must be screened for drug-resistant organisms',['I, III, and IV','I and II','I, II, and IV','III and IV'],'II is false: metabolic effects are inconsistent and short-term.',1)),
+  T(mc('Which of the following are TRUE?\nI. GLP-1 and PYY reduce appetite\nII. GLP-1 speeds stomach emptying\nIII. SCFAs release GLP-1 via GPR41/43 on enteroendocrine cells\nIV. Secondary bile acids increase GLP-1',['I, III, and IV','I, II, and III','I and II','II and IV'],'GLP-1/PYY SLOW stomach emptying.',1)),
+  T(mc('A patient has abdominal pain and altered bowel habits but colonoscopy shows no structural damage. Which condition and microbiota change fit best?',['IBS: changes in motility, visceral sensitivity and ENS signaling','IBD: reduced diversity with structural damage','NAFLD: bile acid changes','Parkinson\'s: altered composition'],'IBD has structural damage; IBS doesn\'t (slide 3 + notes).')),
+]);
+
+/* ---------- Stage 11: her practice questions, verbatim ---------- */
+STAGE('Her practice questions','Lecturer practice set, word for word','Exam', [
+  T(mc('Inhibition of histone deacetylases (HDACs) by butyrate results in:',['Open chromatin and increased gene transcription','Tightly packed chromatin and decreased transcription','DNA fragmentation','Reduced histone acetylation'],'Blocking HDAC keeps histones acetylated → open chromatin → genes ON (slide 6).',1)),
+  T(mc('Which statement regarding dietary fiber is TRUE?',['Fiber fermentation mainly occurs in the colon','Humans completely digest cellulose in the small intestine','Fiber is directly absorbed into the bloodstream','Fiber decreases SCFA production'],'We lack the enzymes, so fiber reaches the colon where microbes ferment it into SCFA (slide 8).',1)),
+  T(mc('A patient with chronic stress develops worsening IBS symptoms. Which physiological change MOST likely contributed to microbiota disruption?',['Altered gut motility and secretion from sympathetic activation','Increased vagal tone and parasympathetic activity','Increased SCFA production','Enhanced mucus production from goblet cells'],'Chronic stress → ↑ sympathetic, ↓ vagal tone → changes motility, secretion, blood flow and habitat (slide 20). Trap: vagal tone goes DOWN.',1)),
+  T(mc('A newborn is breastfed exclusively during the first months of life. Which microbiota-related effect is MOST likely?',['HMOs selectively support beneficial microbes','Reduced growth of Bifidobacterium species','Increased exposure to pathogenic bacteria only','Complete microbiota stabilization at birth'],'HMOs feed Bifidobacterium; stabilization takes ~2–3 years (slide 19).',1)),
+  T(mc('A patient with recurrent antibiotic exposure develops vitamin deficiencies partly related to dysbiosis. Which vitamins are commonly produced by gut microbiota?',['Vitamin K and B vitamins','Vitamins C and D','Vitamins A and E','Vitamin D and K only'],'Slide 2: "vitamin K and Bs."',1)),
+  T(mc('A patient with severe dysbiosis undergoes testing and is found to have decreased regulatory T-cell activity. Which microbial product normally promotes Treg development?',['SCFAs','Histamine','Insulin','Pepsin'],'SCFA (and polysaccharide A) promote anti-inflammatory Tregs (slides 4, 16).',1)),
+  T(mc('A patient with dysbiosis develops elevated systemic inflammation due to increased circulating bacterial products. Which bacterial molecule MOST likely triggered the inflammatory response?',['Lipopolysaccharide (LPS)','BDNF','Vitamin K','GABA'],'High LPS → systemic inflammation (slide 4). BDNF is a host neurotrophic factor, not bacterial.',1)),
+  T(mc('A scientist studies microbial metabolites derived from tryptophan metabolism. These metabolites are MOST associated with regulating:',['Mood, inflammation, and neuroplasticity','Bone mineralization','Skeletal muscle contraction','Blood clotting only'],'Slide 4: indoles and kynurenine regulate inflammation, serotonin pathways, mood and neuroplasticity.',1)),
+  T(mc('Which of the following microbial molecules is recognized by pattern-recognition receptors such as TLRs and NOD receptors?',['Peptidoglycan','Insulin','BDNF','Acetylcholine'],'Peptidoglycan is a MAMP (slides 4, 16).',1)),
+  T(mc('Which immune cell population is particularly reduced in germ-free mice?',['Regulatory T cells','Erythrocytes','Platelets','Neutrophils only'],'Slide 16: reduced CD4⁺ T cells, especially regulatory T cells.',1)),
+]);
+
+</script>
+<script>
+const KEY='l17climb_v1';
+const store = { get(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } },
+  set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(e){} } };
+let SAVE = Object.assign({stars:{}, miss:[], best:0, theme:null}, store.get());
+if (SAVE.theme) document.documentElement.setAttribute('data-theme', SAVE.theme);
+const ALL = STAGES.flatMap(s=>s.items);
+const byId = Object.fromEntries(ALL.map(i=>[i.id,i]));
+const app = document.getElementById('app');
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const starHTML = n => '<i>'+'★'.repeat(n)+'</i>'+'★'.repeat(3-n);
+
+/* ---------- home ---------- */
+function home(){
+  // Stage map: microbes → SCFA → body systems → FMT
+  const P=[[36,40],[80,56],[124,72],[168,86],[212,100],[256,112],[300,124],[344,136],[388,148],[432,160],[476,172]];
+  const curve = 'M'+P.map(p=>p.join(',')).join(' L');
+  const dots = STAGES.map((s,i)=>{const [x,y]=P[i]; const done=(SAVE.stars[i]||0)===3; return `<g class="dot${done?' done':''}" data-stage="${i}" role="button" tabindex="0" aria-label="Stage ${i+1}: ${esc(s.name)}"><circle cx="${x}" cy="${y}" r="11"></circle><text x="${x}" y="${y}">${i+1}</text></g>`;}).join('');
+  const missN = SAVE.miss.filter(id=>byId[id]).length;
+  const trN = ALL.filter(i=>i.trap).length;
+  const hyN = ALL.filter(i=>i.hy).length;
+  app.innerHTML = `
+  <div class="top"><span class="eyebrow">A&amp;P · Lecture 17</span><button class="ghost" id="theme">${themeLabel()}</button></div>
+  <div class="hero"><h1>Microbiota Climb</h1><p>Eleven stops from the microbes in your colon to a fecal transplant: signaling molecules, how SCFAs switch genes on, and what microbiota do to the barrier, brain, immune system and metabolism. Built around her style: trap wording, scenarios, two-statement checks and I–IV combos. The last stage is her own practice questions, word for word. No diagram questions.</p></div>
+  <div class="trace" aria-label="Stage map from gut microbes to FMT">
+    <svg viewBox="0 0 510 200" role="img">
+      <line class="grid" x1="10" y1="182" x2="500" y2="182"></line>
+      <text class="ax" x="30" y="22">microbes</text><text class="ax" x="120" y="62">SCFA</text><text class="ax" x="250" y="96">barrier · brain · immune · metabolism</text><text class="ax" x="420" y="196">FMT</text>
+      <path class="curve" d="${curve}"></path>${dots}
+    </svg>
+  </div>
+  <div class="modes">
+    <button class="mode" data-mode="hy"><b>High-Yield Run</b><span>${hyN} starred items, shuffled</span></button>
+    <button class="mode" data-mode="miss" ${missN?'':'disabled'}><b>Your Misses</b><span>${missN?missN+' to clear':'Nothing missed yet'}</span></button>
+    <button class="mode" data-mode="trap"><b>Trap Drill</b><span>${trN} trap and scenario questions</span></button>
+    <button class="mode" data-mode="mix"><b>Mixed 20</b><span>20 random from every stage</span></button>
+  </div>
+  <div class="eyebrow" style="margin-bottom:8px">Stages · ${ALL.length} questions</div>
+  <div class="stages">${STAGES.map((s,i)=>`<button class="stage" data-stage="${i}"><span class="mv">${s.mv}</span><span><h3>${i+1}. ${esc(s.name)}</h3><small>${esc(s.sub)} · ${s.items.length} Qs</small></span><span class="stars">${starHTML(SAVE.stars[i]||0)}</span></button>`).join('')}</div>
+  <p class="foot">Stars count first-try accuracy: 90% for three, 75% for two, 50% for one. Anything you miss comes back at the end of the run until you get it, and lands in Your Misses.</p>`;
+  app.querySelectorAll('[data-stage]').forEach(b=>{ const go=()=>startRun('stage',+b.dataset.stage); b.addEventListener('click',go); b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+  app.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.mode)));
+  document.getElementById('theme').onclick = toggleTheme;
+  // stages list top = last stage climbs upward visually? keep order 1..8 for reading.
+}
+function themeLabel(){ const t=document.documentElement.getAttribute('data-theme'); return t==='dark'?'Dark':t==='light'?'Light':'Auto'; }
+function toggleTheme(){ const r=document.documentElement; const t=r.getAttribute('data-theme'); const n = t===null?'dark':t==='dark'?'light':null; if(n) r.setAttribute('data-theme',n); else r.removeAttribute('data-theme'); SAVE.theme=n; store.set(SAVE); document.getElementById('theme').textContent=themeLabel(); }
+
+/* ---------- run ---------- */
+let R=null;
+function startRun(mode, stage){
+  let items, title;
+  if(mode==='stage'){ items = STAGES[stage].items.slice(); title = (stage+1)+'. '+STAGES[stage].name; }
+  else if(mode==='hy'){ items = shuffle(ALL.filter(i=>i.hy)); title='High-Yield Run'; }
+  else if(mode==='miss'){ items = shuffle(SAVE.miss.map(id=>byId[id]).filter(Boolean)); title='Your Misses'; }
+  else if(mode==='trap'){ items = shuffle(ALL.filter(i=>i.trap)); title='Trap Drill'; }
+  else { items = shuffle(ALL).slice(0,20); title='Mixed 20'; }
+  R = {mode, stage, title, queue: items.map(it=>({it, retry:false})), total: items.length, firstRight:0, firstDone:0, score:0, streak:0, missed:[], pos:0};
+  renderItem();
+}
+function mult(){ return Math.min(4, 1+Math.floor(R.streak/3)); }
+function hud(){
+  const done = R.firstDone; const pct = Math.round(100*done/R.total);
+  return `<div class="hud"><div class="hudrow"><button class="ghost" id="quit">← Map</button><span>${esc(R.title)}</span><span>${R.score} pts <span class="mult">×${mult()}</span></span></div>
+  <div class="bar"><i style="width:${pct}%"></i></div><div class="hudrow"><span>${Math.min(done+1,R.total)} / ${R.total}${R.queue[R.pos]&&R.queue[R.pos].retry?' · retry':''}</span><span>streak ${R.streak}</span></div></div>`;
+}
+function figHTML(key, item){
+  const d = DIA[key]; if(!d) return '';
+  const mask = d.mask!==false;
+  let boxes = '';
+  if(item && (item.t==='lb'||item.t==='nm')){
+    let tIdx = -1;
+    if(item.t==='nm'){ let k=0; d.b.forEach((b,i)=>{ if(b[4]===item.name){ if(k===item.idx) tIdx=i; k++; } }); }
+    boxes = d.b.map((b,i)=>{
+      const cls = item.t==='lb' ? 'box tap' : (i===tIdx ? 'box target' : 'box');
+      if(!mask && item.t==='nm' && i!==tIdx) return '';
+      const tag = item.t==='lb' ? 'button' : 'div';
+      return `<${tag} class="${cls}" data-bi="${i}" data-name="${esc(b[4])}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" ${item.t==='lb'?'aria-label="covered label"':''}></${tag}>`;
+    }).join('');
+  }
+  return `<div class="fig ${mask?'':'nomask'}"><img src="${d.img}" alt="${esc(d.title)}">${boxes}</div><div class="figcap">${esc(d.title)}</div>`;
+}
+function renderItem(){
+  if(R.pos>=R.queue.length) return finish();
+  const {it, retry} = R.queue[R.pos];
+  const typeName = {mc:'Multiple choice',so:'Sort',od:'Order',mt:'Match',lb:'Tap the label',nm:'Name the box'}[it.t];
+  let body = '';
+  const tag = `<div class="tag">${typeName}${it.trap?' <span class="tr">trap</span>':''}${it.hy?' <span class="hy">high yield</span>':''}${retry?' · second chance':''}</div>`;
+  if(it.t==='mc'){
+    const opts = shuffle(it.o);
+    body = (it.ctx?`<div class="ctx">${esc(it.ctx)}</div>`:'') + (it.img?figHTML(it.img):'') + `<p class="q">${esc(it.q)}</p><div class="opts">${opts.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(it.t==='so'){
+    const S = SORTS[it.set];
+    body = `<p class="q">${esc(S.label)}</p><div class="sortitem">${esc(it.item)}</div><div class="cats">${S.cats.map(c=>`<button class="cat" data-key="${c[0]}" style="--cc:var(${c[2]})">${esc(c[1])}</button>`).join('')}</div>`;
+  } else if(it.t==='od'){
+    body = `<p class="q">${esc(it.q)}</p><div class="seq" id="seq"></div><div class="chips">${shuffle(it.steps).map(s=>`<button class="chip" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><div class="actions"><button class="ghostbtn" id="undo">Undo</button></div>`;
+  } else if(it.t==='mt'){
+    body = `<p class="q">${esc(it.q)}</p><div class="mtgrid"><div class="mtcol">${it.pairs.map(p=>`<button class="mtb L" data-v="${esc(p[0])}">${esc(p[0])}</button>`).join('')}</div><div class="mtcol">${shuffle(it.pairs.map(p=>p[1])).map(v=>`<button class="mtb Rr" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>`;
+  } else if(it.t==='lb'){
+    body = `<p class="q">Tap the covered label: <span style="color:var(--accent)">${esc(it.name)}</span></p>` + figHTML(it.dia,it);
+  } else if(it.t==='nm'){
+    const d=DIA[it.dia];
+    let opts;
+    if(it.o) opts = it.o.slice();
+    else { const names=[...new Set(d.b.map(b=>b[4]))].filter(n=>n!==it.name); opts=[it.ans, ...shuffle(names).slice(0,3)]; }
+    body = figHTML(it.dia,it) + `<p class="q">${esc(it.q||'Name the label in the orange box.')}</p><div class="opts">${shuffle(opts).map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  }
+  app.innerHTML = hud() + `<div class="card" id="card">${tag}${body}<div id="fb"></div></div>`;
+  document.getElementById('quit').onclick = ()=>{ R=null; home(); };
+  wire(it);
+  window.scrollTo(0,0);
+}
+function wire(it){
+  const card = document.getElementById('card');
+  if(it.t==='mc' || it.t==='nm'){
+    const right = it.t==='mc' ? it.o[0] : it.ans;
+    card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.v===right;
+      card.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.v===right) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      if(it.t==='nm'){ const t=card.querySelector('.box.target'); if(t){ t.classList.add('right'); } }
+      answer(ok, it.t==='nm' && !ok ? 'It was: '+it.ans : (ok?'':'Answer: '+right));
+    });
+  } else if(it.t==='so'){
+    card.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.key===it.key;
+      card.querySelectorAll('.cat').forEach(x=>{ x.disabled=true; if(x.dataset.key===it.key) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      const S=SORTS[it.set]; answer(ok, ok?'':'Answer: '+S.cats.find(c=>c[0]===it.key)[1]);
+    });
+  } else if(it.t==='lb'){
+    card.querySelectorAll('.box.tap').forEach(b=>b.onclick=()=>{
+      if(card.dataset.done) return; card.dataset.done=1;
+      const ok = b.dataset.name===it.name;
+      card.querySelectorAll('.box.tap').forEach(x=>{ x.disabled=true; if(x.dataset.name===it.name) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      answer(ok, ok?'':'The green outline shows where it is.');
+    });
+  } else if(it.t==='od'){
+    const seq=[]; const seqEl=document.getElementById('seq');
+    const draw=()=>{ seqEl.innerHTML = seq.map((s,i)=>`<div class="slot"><span>${i+1}</span><span>${esc(s)}</span></div>`).join(''); };
+    card.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+      seq.push(b.dataset.v); b.disabled=true; draw();
+      if(seq.length===it.steps.length){
+        const ok = seq.every((s,i)=>s===it.steps[i]);
+        seqEl.querySelectorAll('.slot').forEach((el,i)=>{ if(seq[i]!==it.steps[i]) el.classList.add('wrong'); });
+        document.getElementById('undo').disabled=true;
+        answer(ok, ok?'':'Correct order: '+it.steps.map((s,i)=>(i+1)+') '+s).join('  '));
+      }
+    });
+    document.getElementById('undo').onclick=()=>{ const v=seq.pop(); if(v==null) return; const c=[...card.querySelectorAll('.chip')].find(x=>x.dataset.v===v&&x.disabled); if(c) c.disabled=false; draw(); };
+  } else if(it.t==='mt'){
+    let selL=null; const made={};
+    const L=[...card.querySelectorAll('.mtb.L')], Rr=[...card.querySelectorAll('.mtb.Rr')];
+    L.forEach(b=>b.onclick=()=>{ if(b.classList.contains('paired')) return; L.forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); selL=b; });
+    Rr.forEach(b=>b.onclick=()=>{
+      if(!selL || b.classList.contains('paired')) return;
+      made[selL.dataset.v]=b.dataset.v; selL.classList.remove('sel'); selL.classList.add('paired'); b.classList.add('paired');
+      selL.textContent = selL.dataset.v+' → '+b.dataset.v; selL=null;
+      if(Object.keys(made).length===it.pairs.length){
+        const ok = it.pairs.every(p=>made[p[0]]===p[1]);
+        L.forEach(x=>{ const p=it.pairs.find(p=>p[0]===x.dataset.v); x.classList.add(made[p[0]]===p[1]?'right':'wrong'); });
+        answer(ok, ok?'':'Pairs: '+it.pairs.map(p=>p[0]+' → '+p[1]).join(' · '));
+      }
+    });
+  }
+}
+function answer(ok, extra){
+  const q = R.queue[R.pos];
+  if(!q.retry){
+    R.firstDone++;
+    if(ok){ R.firstRight++; }
+    else { R.missed.push(q.it.id); if(!SAVE.miss.includes(q.it.id)) SAVE.miss.push(q.it.id); }
+  }
+  if(ok){ R.score += 10*mult(); R.streak++; if(R.mode==='miss'||q.retry) SAVE.miss = SAVE.miss.filter(id=>id!==q.it.id); }
+  else { R.streak=0; R.queue.push({it:q.it, retry:true}); }
+  store.set(SAVE);
+  const fb = document.getElementById('fb');
+  fb.innerHTML = `<div class="fb ${ok?'ok':'no'}"><b>${ok?'Correct':'Not quite'}</b>${extra?esc(extra)+'<br>':''}${esc(q.it.why||'')}</div><button class="next" id="next">${R.pos+1<R.queue.length?'Next':'See results'}</button>`;
+  const n=document.getElementById('next'); n.onclick=()=>{ R.pos++; renderItem(); }; n.focus({preventScroll:true});
+  fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function finish(){
+  const acc = R.total? R.firstRight/R.total : 0;
+  const st = acc>=0.9?3:acc>=0.75?2:acc>=0.5?1:0;
+  if(R.mode==='stage'){ SAVE.stars[R.stage]=Math.max(SAVE.stars[R.stage]||0, st); }
+  SAVE.best=Math.max(SAVE.best||0,R.score); store.set(SAVE);
+  const missed=[...new Set(R.missed)].map(id=>byId[id]);
+  const label = it => it.t==='so'?it.item : (it.t==='lb'||it.t==='nm')? (it.q||'Label')+': '+it.ans : it.q;
+  app.innerHTML = `<div class="card result" style="margin-top:18px"><div class="eyebrow">${esc(R.title)}</div><h2>${st===3?'Summit':st===2?'Almost there':st===1?'Halfway up':'Keep climbing'}</h2>
+    <div class="big-stars">${starHTML(st)}</div>
+    <p class="stat">${R.firstRight}/${R.total} first try (${Math.round(acc*100)}%) · ${R.score} pts · best ${SAVE.best}</p>
+    ${missed.length?`<div class="eyebrow" style="margin-top:12px">Missed on first try</div><ul class="misslist">${missed.map(it=>`<li>${esc(label(it))}</li>`).join('')}</ul>`:''}
+    <div class="actions" style="margin-top:16px"><button class="next" id="again">Run it again</button><button class="ghostbtn" id="map">Back to map</button></div></div>`;
+  document.getElementById('again').onclick=()=>startRun(R.mode,R.stage);
+  document.getElementById('map').onclick=()=>{ R=null; home(); };
+}
+window.GAME = { cur: ()=> R && R.queue[R.pos] ? R.queue[R.pos].it : null, STAGES, DIA, SORTS, startRun, home };
+
+home();
+</script>
