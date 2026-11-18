@@ -1,0 +1,614 @@
+<title>Balance Smell Taste Climb</title>
+<meta name="description" content="Lecture 20 review game: balance (vestibule, semicircular canals, VOR), taste and smell">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+
+/* Layout: one narrow column; home = a path from the senses to the pupil, run = card + figure + choices */
+:root{
+  --bg:#EDF1EE; --panel:#FFFFFF; --panel2:#F6F8F6; --ink:#15201C; --muted:#5A6A64; --line:#CFD9D4;
+  --accent:#0C7A63; --accent-ink:#FFFFFF; --cover:#EE8A22; --cover-dim:#B9C4BF; --ok:#1C8A4B; --bad:#C2372C; --star:#D99A0B;
+  --c1:#2F6FB7; --c2:#8A5BB0; --c3:#0C7A63; --c4:#C9821A; --c5:#C4467E;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.box:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.hero h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.02;letter-spacing:-.01em;margin-top:6px}
+.hero p{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.trace{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px 4px;overflow:hidden}
+.trace svg{display:block;width:100%;height:auto}
+.trace .grid{stroke:var(--line);stroke-width:1}
+.trace .curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round}
+.trace .dot{cursor:pointer}
+.trace .dot circle{fill:var(--panel);stroke:var(--accent);stroke-width:2.5}
+.trace .dot.done circle{fill:var(--accent)}
+.trace .dot text{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.trace .dot.done text{fill:var(--accent-ink)}
+.trace .ax{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 22px}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.mode b{font-family:var(--display);font-weight:700;font-size:17px}
+.mode span{color:var(--muted);font-size:13px}
+.mode:disabled{opacity:.45;cursor:default}
+.stages{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%}
+.stage .mv{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--accent);font-variant-numeric:tabular-nums}
+.stage h3{font-size:18px;font-weight:700}
+.stage small{color:var(--muted);display:block;font-size:13px}
+.stars{font-size:16px;letter-spacing:2px;color:var(--line);white-space:nowrap}
+.stars i{font-style:normal;color:var(--star)}
+.foot{color:var(--muted);font-size:13px;margin-top:22px}
+/* run */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:flex;flex-direction:column;gap:8px}
+.hudrow{display:flex;align-items:center;gap:10px;justify-content:space-between;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.mult{color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:8px}
+.ctx{background:var(--panel2);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:15px}
+.tag{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tag .tr{color:var(--c2);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.tag .hy{color:var(--bad);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.q{font-size:18px;font-weight:700;margin:2px 0 12px;white-space:pre-line}
+.fig{position:relative;width:100%;margin:4px 0 4px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.fig img{display:block;width:100%;height:auto}
+.box{position:absolute;border-radius:3px;background:var(--cover-dim);border:0;padding:0}
+.box.target{background:var(--cover);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--cover)}
+.box.tap{background:var(--cover);cursor:pointer}
+.box.tap:hover{filter:brightness(1.08)}
+.nomask .box{background:transparent}
+.nomask .box.target{background:color-mix(in srgb,var(--cover) 14%,transparent);box-shadow:none;outline:3px solid var(--cover);outline-offset:-3px}
+.box.right{background:transparent!important;outline:3px solid var(--ok);outline-offset:-1px;box-shadow:none}
+.box.wrong{background:transparent!important;outline:3px solid var(--bad);outline-offset:-1px;box-shadow:none}
+.figcap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--panel))}
+.opt:disabled{cursor:default}
+.sortitem{font-size:18px;font-weight:700;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cat{border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 10%,var(--panel));border-radius:10px;padding:12px 10px;font-weight:700}
+.cat.right{outline:3px solid var(--ok);outline-offset:2px}
+.cat.wrong{outline:3px solid var(--bad);outline-offset:2px}
+.seq{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-height:20px}
+.seq .slot{font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));display:flex;gap:8px}
+.seq .slot.wrong{background:color-mix(in srgb,var(--bad) 14%,var(--panel))}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--panel2);border:1.5px solid var(--line);border-radius:999px;padding:8px 13px;font-size:15px}
+.chip:disabled{opacity:.3}
+.mtgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.mtcol{display:flex;flex-direction:column;gap:8px}
+.mtb{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.mtb.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.mtb.paired{opacity:.55}
+.mtb.right{border-color:var(--ok)} .mtb.wrong{border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:10px;padding:12px 14px;font-size:15px}
+.fb.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border:1px solid var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 10%,var(--panel));border:1px solid var(--bad)}
+.fb b{display:block;margin-bottom:2px}
+.next{margin-top:14px;width:100%;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px;font-weight:700;font-size:17px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .next{flex:1 1 160px;margin-top:0}
+.actions .ghostbtn{flex:1 1 160px;background:none;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-weight:700}
+.result h2{font-size:30px;margin:6px 0}
+.big-stars{font-size:38px;letter-spacing:6px;color:var(--line)} .big-stars i{font-style:normal;color:var(--star)}
+.stat{font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.misslist{margin:12px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+@media (max-width:440px){.stage{grid-template-columns:54px minmax(0,1fr) auto;gap:10px;padding:12px}.stars{font-size:13px;letter-spacing:1px}.cats{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+</style>
+<div class="wrap" id="app"></div>
+<script>
+const DIA = {};
+const STAGES = [];
+let _sid = 0;
+function STAGE(name, sub, mv, items){ const s = {name, sub, mv, items: items.flat()}; s.items.forEach((it,i)=>{ it.id = 's'+STAGES.length+'_'+i; it.stage = STAGES.length; }); STAGES.push(s); }
+function mc(q,o,why,red){ return {t:'mc',q,o,why,hy:!!red}; }
+function im(img,q,o,why,red){ return {t:'mc',img,q,o,why,hy:!!red}; }
+function so(set,item,key,why,red){ return {t:'so',set,item,key,why,hy:!!red}; }
+function od(q,steps,why,red){ return {t:'od',q,steps,why,hy:!!red}; }
+function mt(q,pairs,why,red){ return {t:'mt',q,pairs,why,hy:!!red}; }
+function lb(dia,name,why,red){ return {t:'lb',dia,name,why,hy:!!red}; }
+function nm(dia,name,why,red,q,x){ x=x||{}; return {t:'nm',dia,name,why,hy:!!red,q:q||null,o:x.o||null,ans:x.ans||name,idx:x.idx||0}; }
+function cs(text,steps,red,img){ return steps.map(s=>({t:'mc',ctx:text,img:img||null,q:s[0],o:s[1],why:s[2],hy:!!red})); }
+
+</script>
+<script>
+// ===== Lecture 20 content: Balance, smell and taste =====
+function T(x){ (Array.isArray(x)?x:[x]).forEach(i=>i.trap=true); return x; }
+
+const SORTS = {
+  org: {label: 'Which inner ear organ detects this?', cats: [['ves','Vestibule (utricle + saccule)','--c3'],['scc','Semicircular canals','--c4'],['coc','Cochlea','--c2']]},
+  us: {label: 'Utricle or saccule?', cats: [['utr','Utricle (horizontal plane)','--c1'],['sac','Saccule (vertical plane)','--c5']]},
+  ty: {label: 'Type I or Type II vestibular hair cell?', cats: [['t1','Type I (phasic, rapid)','--c2'],['t2','Type II (tonic, slower)','--c4']]},
+  bend: {label: 'Stereocilia bent toward or away from the kinocilium?', cats: [['tow','Toward the kinocilium','--c4'],['awy','Away from the kinocilium','--c1']]},
+  mc: {label: 'Macula (vestibule) or crista ampullaris (canal)?', cats: [['mac','Macula','--c3'],['cri','Crista ampullaris','--c5']]},
+  ts: {label: 'Which primary taste?', cats: [['sw','Sweet','--c4'],['bi','Bitter','--c1'],['sa','Salty','--c2'],['so','Sour','--c3'],['um','Umami','--c5']]},
+  vor: {label: 'Head turns RIGHT. What does this eye muscle do?', cats: [['con','Contracts (excited)','--c4'],['rel','Relaxes (inhibited)','--c1']]},
+};
+
+/* ---------- Stage 1 ---------- */
+STAGE('Balance and the vestibule','3 things balance detects, utricle vs saccule, macula, otoliths, Type I vs II','P1', [
+  mc('Balance relies on detecting which three things?',['Head position relative to gravity, linear acceleration, rotational acceleration','Sound frequency, loudness, head position','Linear acceleration, light intensity, rotation','Gravity, blood pressure, eye position'],'Slide 2.',1),
+  so('org','Head tilted to one side and held','ves','Head position relative to gravity = vestibule.'),
+  so('org','A car suddenly brakes','ves','Linear (horizontal) acceleration = utricle.'),
+  so('org','An elevator slows down','ves','Linear (vertical) acceleration = saccule.'),
+  so('org','Shaking your head “no”','scc','Rotation (yaw) = semicircular canals.'),
+  so('org','A figure skater’s sit spin','scc','⭐ Pure angular acceleration.'),
+  so('org','Nodding “yes”','scc','Rotation (pitch).'),
+  so('org','A 4000 Hz tone','coc','Hearing, not balance.'),
+  so('us','Car suddenly brakes','utr','Horizontal acceleration.'),
+  so('us','Elevator slows down','sac','Vertical acceleration.'),
+  so('us','Hair cells oriented on a horizontal plane','utr','Slide 3.'),
+  so('us','Hair cells oriented on a vertical plane','sac','Slide 3.'),
+  so('us','Jumping straight up on a trampoline','sac','Up/down = vertical.'),
+  so('us','A train pulling forward out of a station','utr','Forward/back = horizontal.'),
+  T(mc('Where is the vestibule?',['Central part of the bony labyrinth, between the cochlea and the semicircular canals','At the end of each semicircular canal','Inside the middle ear, next to the stapes','At the apex of the cochlea'],'Slide 3. The bulge at the end of a canal is the ampulla.',1)),
+  T(mc('The two otolith organs are the:',['Utricle and saccule','Ampulla and cupula','Utricle and ampulla','Saccule and cochlea'],'Ampulla and cupula belong to the semicircular canals.',1)),
+  T(mc('The utricle detects:',['Horizontal acceleration, because its hair cells lie on a horizontal plane','Vertical acceleration, because its hair cells lie on a horizontal plane','Rotation in the horizontal plane','Vertical acceleration, because its hair cells lie on a vertical plane'],'⭐ One swapped word: horizontal ↔ vertical. Utricle = horizontal, saccule = vertical.',1)),
+  T(mc('You ride an elevator that accelerates upward while also sliding sideways (a tilted elevator). What is activated?',['Both the utricle and the saccule; the brain combines them','Only the saccule','Only the utricle','The semicircular canals'],'⭐ Combined movement has horizontal and vertical vectors, so both fire and the brain integrates them.',1)),
+  mt('Match each part of the macula to what it is.',[['Stereocilia + kinocilium','Hair bundle (staircase + one tallest)'],['Otolithic membrane','Gelatinous “jello” layer'],['Otoliths','CaCO₃ crystals on top'],['Vestibular nerve','Carries signal to the brain']],'Slide 3 and notes table.',1),
+  T(mc('What are otoliths made of?',['Calcium carbonate (CaCO₃) crystals','Calcium phosphate','Gelatinous protein','Keratin'],'“Ear stones.”',1)),
+  T(mc('Why are otoliths needed for detecting tilt and linear acceleration?',['They are heavy, so gravity and inertia shift them more than the rest of the structure','They are light, so they float in endolymph','They generate the receptor potential themselves','They release neurotransmitter onto the nerve'],'⭐ Heavy → respond to gravity (tilt) and, with bigger inertia, to acceleration.',1)),
+  od('Order the steps of how the macula detects a head tilt.',['Head tilts or accelerates','Heavy otoliths shift','Gelatinous membrane shifts with them','Stereocilia bend','Channels open, neurotransmitter released','Vestibular neurons signal the brain'],'⭐ Notes, 6 steps.',1),
+  T(mc('Where are the stereocilia of a macular hair cell embedded?',['In the gelatinous otolithic membrane','Directly in the otoliths','In the cupula','In the tectorial membrane'],'The cupula is the canal version; tectorial is the cochlea.',1)),
+  so('ty','Responds only to a CHANGE in stimulus','t1','Phasic.'),
+  so('ty','Keeps responding while you hold a tilted position','t2','Tonic.'),
+  so('ty','Quickly detects that you suddenly bent down','t1','Her example.'),
+  so('ty','Keeps confirming “head is in this position” for minutes','t2','Her example.'),
+  T(mc('Type I vestibular hair cells are:',['Rapid and phasic: they respond only to changes in the stimulus','Slow and tonic: they respond as long as the stimulus is present','Rapid and tonic','Slow and phasic'],'⭐ Watch the pairing. Type I = rapid + phasic; Type II = slower + tonic.',1)),
+  T(mc('You hold your head tilted to the left for 2 minutes during a yoga pose. Which hair cells keep reporting the position?',['Type II (tonic)','Type I (phasic)','Inner hair cells','Neither; all hair cells adapt immediately'],'Tonic = maintained response to an unchanging stimulus.',1)),
+  T(mc('True or False: Type II hair cells respond only to a change in stimulus.',['False','True'],'That is Type I. One swapped word.',1)),
+  T(mc('True or False: The saccule’s hair cells are oriented on a vertical plane.',['True','False'],'Slide 3.')),
+  T(mc('True or False: Each otolith organ contains a crista ampullaris.',['False','True'],'Each contains a MACULA. The crista is in the ampulla of a canal.',1)),
+  mc('Balance is needed for:',['Posture, coordinating movement, and stabilizing vision while we move','Only posture','Hearing and posture','Smell and taste'],'Notes, Part 1A.'),
+]);
+
+/* ---------- Stage 2 ---------- */
+STAGE('Direction coding and baseline','Toward vs away from the kinocilium, channels, ions, baseline, rate coding','P1', [
+  so('bend','Depolarization','tow','Toward → depolarize.'),
+  so('bend','Tip links stretch, channels open','tow','Mechanically gated channels open.'),
+  so('bend','More neurotransmitter, ↑ afferent firing','tow','Slide 5.'),
+  so('bend','Hyperpolarization','awy','Away → hyperpolarize.'),
+  so('bend','Tip links relax, channels close','awy','No cations in.'),
+  so('bend','Less neurotransmitter, ↓ afferent firing','awy','Slide 5.'),
+  T(mc('Stereocilia bend TOWARD the kinocilium. What happens?',['Depolarization → more neurotransmitter → increased afferent firing','Hyperpolarization → less neurotransmitter → decreased firing','Depolarization → less neurotransmitter → decreased firing','No change, because only magnitude matters'],'⭐ The core rule of the lecture.',1)),
+  T(mc('Stereocilia bend AWAY from the kinocilium. What happens?',['Hyperpolarization → less neurotransmitter → decreased afferent firing','Depolarization → more neurotransmitter → increased firing','Hyperpolarization → more neurotransmitter → increased firing','The hair cell fires an action potential'],'⭐ Away = hyperpolarize = ↓ firing.',1)),
+  T(mc('When stereocilia bend toward the kinocilium, which ions enter the hair cell, and from where?',['K⁺ and Ca²⁺, from the endolymph','Na⁺ and Ca²⁺, from the perilymph','K⁺ only, from the perilymph','Cl⁻, from the endolymph'],'⭐ Same machinery as cochlear hair cells (Lec 19).',1)),
+  T(mc('Why does a hair cell hyperpolarize when bent AWAY from the kinocilium?',['Channels close so no cations enter, but K⁺ still leaks out the base into low-K⁺ perilymph','K⁺ rushes in from the endolymph','Cl⁻ channels open','The otoliths pull Na⁺ out'],'⭐ Notes table: tip links relax, K⁺ keeps leaking out the base.',1)),
+  T(mc('With stereocilia in the NEUTRAL position, the afferent neuron:',['Fires at a baseline rate, because some channels are open and a basal level of neurotransmitter is released','Is completely silent','Fires at its maximum rate','Fires only if the kinocilium is bent'],'⭐ Vestibular hair cells have a baseline. That is what lets the signal go up OR down.',1)),
+  T(mc('Which is TRUE of vestibular hair cells but NOT cochlear hair cells?',['They have a baseline signal at rest and can bend in both directions','They use tip links','They release neurotransmitter','They sit in endolymph'],'⭐ Cochlear hair cells: no resting signal, bend one way, only a positive signal.',1)),
+  T(mc('Why is the baseline firing so important?',['It lets the signal go both up and down, so the brain can read the direction of movement','It saves energy','It keeps the otoliths in place','It prevents adaptation'],'⭐ Without a baseline you could only signal “more,” never “less.”',1)),
+  T(mc('How does the brain read the direction AND degree of head movement from one afferent neuron?',['Rate coding: the firing frequency rises or falls from baseline','By the shape of each action potential','By which neurotransmitter is released','By the location of the hair cell on the tongue'],'⭐ “Another example of rate coding.” (Lec 19: rate coding for loudness.)',1)),
+  T(mc('A head movement bends a hair cell’s stereocilia a little toward the kinocilium. A bigger movement in the same direction will:',['Increase the firing rate even more','Decrease the firing rate','Switch the cell to hyperpolarization','Not change the rate, only direction is coded'],'Degree is coded by how far the rate moves from baseline.',1)),
+  T(mc('In the cochlea, stereocilia bend in only one direction. Why can vestibular stereocilia bend both ways?',['The head can move in many, even opposite, directions','The vestibule has no tip links','The otoliths push them back and forth with sound','The kinocilium rotates'],'Notes: the “problem” that direction coding solves.')),
+  T(mc('The tip-link channels in vestibular hair cells are:',['Mechanically gated','Ligand gated by glutamate','cGMP gated','Voltage gated'],'Same as cochlear hair cells.',1)),
+  T(mc('She says Type I hair cells “fire action potentials.” What actually fires the APs?',['The afferent (vestibular) neuron; hair cells release neurotransmitter','The hair cell itself','The otoliths','The kinocilium'],'Accuracy note in her notes, same as Lec 19.',1)),
+  T(mc('True or False: Vestibular hair cells, like cochlear hair cells, produce no neural signal at rest.',['False','True'],'⭐ Vestibular = baseline; cochlear = none.',1)),
+  T(mc('True or False: Bending away from the kinocilium increases neurotransmitter release.',['False','True'],'Away → less.',1)),
+  T(mc('The kinocilium is:',['The single tallest cilium at one side of the stereocilia staircase','The shortest stereocilium','The gelatinous membrane','The crystal on top of the membrane'],'Stereocilia are arranged short to long, then one tallest kinocilium.')),
+  T(mc('A student recalls: 1. Bending toward the kinocilium depolarizes the cell. 2. Bending away silences the afferent nerve completely. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'Away DECREASES firing below baseline. It doesn’t have to go to zero (slide 8: 10 spikes/sec).',1)),
+]);
+
+/* ---------- Stage 3 ---------- */
+STAGE('Intrinsic slow adaptation','Ca²⁺, myosin, actin, insertional plaque, and why it matters','P1', [
+  od('Order the steps of intrinsic slow adaptation.',['Stereocilia bend, tip links stretch','MET channels open, K⁺ and Ca²⁺ enter','Ca²⁺ slowly accumulates inside','Ca²⁺ activates myosin motors','Myosin moves along actin, lowering the insertional plaque','Tip link tension drops, channel closes or partly closes'],'⭐ Slide 5, 6 steps.',1),
+  T(mc('Which ion triggers intrinsic slow adaptation?',['Ca²⁺','K⁺','Na⁺','Cl⁻'],'K⁺ depolarizes; Ca²⁺ accumulation triggers adaptation.',1)),
+  T(mc('Which motor protein adjusts the tip link during adaptation?',['Myosin','Kinesin','Dynein','Actin'],'Myosin moves ALONG actin. Actin is the track, not the motor.',1)),
+  T(mc('During adaptation, myosin moves along actin to:',['Move the tip-link attachment (insertional plaque) and reduce tension on the tip link','Increase tension on the tip link','Pull the otoliths back','Open more MET channels'],'⭐ Less tension → channel closes or partly closes.',1)),
+  T(mc('What is the FUNCTION of intrinsic slow adaptation?',['To keep the hair cell sensitive to NEW changes in movement instead of staying continuously active','To amplify the signal for small movements','To make the hair cell fire continuously while the head is tilted','To protect the cell from loud sound'],'⭐ “Preserve the ability to detect new stimuli.”',1)),
+  T(mc('After adaptation, the head moves again. What happens?',['The tip link can tense up again and reopen the channel','The cell is permanently desensitized','Only Type II cells respond','The otoliths dissolve'],'That is the whole point of adapting.',1)),
+  T(mc('Adaptation in vestibular hair cells reminded her of which earlier mechanism?',['The sarcomere: Ca²⁺ → myosin moving along actin','The visual cycle in the RPE','Peristaltic reflex','Long-term potentiation'],'⭐ Her comparison to muscle contraction.',1)),
+  T(mc('Why is it called “slow” adaptation?',['Because it happens relatively slowly, as Ca²⁺ gradually accumulates','Because it only happens in Type II cells','Because it takes days','Because it occurs only during sleep'],'Notes.')),
+  T(mc('Why is it called “intrinsic”?',['It is built into the hair cell itself','It requires signals from the brain','It is controlled by the otoliths','It depends on the cupula'],'No outside input needed.')),
+  T(mc('Where does the Ca²⁺ that triggers adaptation come from?',['The endolymph, entering through MET channels','The sarcoplasmic reticulum','The perilymph through voltage-gated channels only','The otoliths dissolving'],'K⁺ and Ca²⁺ enter from the endolymph.',1)),
+  T(mc('A drug blocks myosin motors in vestibular hair cells. What is most likely?',['Channels stay open after a stimulus, so the cell stays active and responds poorly to new movements','Hair cells can no longer depolarize','Bending away now depolarizes','Baseline firing disappears'],'Adaptation fails, so the cell can’t reset. (Applied.)',1)),
+  T(mc('A drug chelates (removes) intracellular Ca²⁺ in hair cells. Which is affected?',['Adaptation, because Ca²⁺ is needed to activate myosin','Otolith formation only','Direction coding reverses','Nothing; K⁺ alone drives adaptation'],'Applied.',1)),
+  T(mc('Which of the following are TRUE about intrinsic slow adaptation?\nI. It begins when tip links are stretched\nII. Ca²⁺ entry activates myosin motors\nIII. It increases tension on the tip link\nIV. It keeps the cell sensitive to new stimuli',['I, II, and IV','I and II','II, III, and IV','I, II, III, and IV'],'III: it DECREASES tension.',1)),
+  T(mc('True or False: During adaptation, tip link tension increases, so the MET channel opens wider.',['False','True'],'Tension decreases, channel closes or partly closes.',1)),
+  T(mc('True or False: Adaptation lets the hair cell stay continuously activated in one head position.',['False','True'],'The opposite: it stops continuous activation.',1)),
+]);
+
+/* ---------- Stage 4 ---------- */
+STAGE('Striola and opposing signals','Line of polarity reversal, confirmation, both ears, retina parallel','P1', [
+  T(mc('What is the striola?',['The line in the macula where hair cell orientation (polarity) reverses','A crystal on the otolithic membrane','The sensory ridge in the ampulla','The nerve leaving the utricle'],'⭐ Slide 6: “line of polarity reversal.”',1)),
+  T(mc('Hair cells on both sides of the striola share the same otolithic membrane. When it shifts:',['One side bends toward its kinocilium (↑ firing), the other away (↓ firing)','Both sides bend toward their kinocilium','Both sides are silent','Only the side nearer the cochlea responds'],'⭐ Same motion, opposite bending relative to each kinocilium.',1)),
+  T(mc('Why does the brain benefit from opposite signals across the striola?',['The opposing signals confirm each other, increasing confidence and precision','They cancel out, so small movements are ignored','They double the number of otoliths','They prevent adaptation'],'⭐ “Did I move? I’m not so sure” → a second opposite signal gives much higher confidence.',1)),
+  T(mc('Opposing striola signals reaching the brain at the same time is the same strategy as:',['ON and OFF bipolar cells from one photoreceptor (Lec 18)','Tonotopy (Lec 19)','The direct and indirect pathways','Rate coding of loudness'],'⭐ “This is exactly the same.”',1)),
+  T(mc('Bilateral comparison means:',['The vestibules of both ears send parallel information, adding more confirmation','One ear handles linear and the other rotation','Left ear detects tilt, right ear detects acceleration','Signals from both ears cancel each other'],'Slide 6, point 4. With the striola, she called it 4-fold confirmation.',1)),
+  T(mc('Together, the striola and both ears give how many confirming signals for one movement, in her words?',['4-fold','2-fold','8-fold','None; they are redundant'],'2 sides of the striola × 2 ears.')),
+  T(mc('As a result of these mechanisms, the brain detects accurately:',['Head tilt direction and degree relative to gravity, and direction and magnitude of linear acceleration','Rotational speed only','Pitch and loudness','Odor and taste combinations'],'Slide 6 “Result.”',1)),
+  T(mc('A very small head tilt barely bends the stereocilia. What gives the brain confidence that the head really moved?',['Opposite signals from the two sides of the striola and from both ears agree','Type II cells switching to phasic','The cupula amplifying the signal','The cochlea joining in'],'Applied version of her logic.',1)),
+  T(mc('Across the striola, what reverses?',['Which side of the hair bundle the kinocilium is on','The type of ion that enters','The neurotransmitter','The size of the otoliths'],'Polarity = kinocilium side.',1)),
+  T(mc('A student recalls: 1. Hair cells on both sides of the striola depolarize together. 2. Both ears send parallel vestibular information. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'One side depolarizes, the other hyperpolarizes.',1)),
+  T(mc('True or False: The two sides of the striola sit under different otolithic membranes, which is why they respond oppositely.',['False','True'],'Same membrane and otoliths; opposite polarity is why.',1)),
+  T(mc('True or False: The opposing signals across the striola confirm each other.',['True','False'],'⭐ Exam callout.')),
+]);
+
+/* ---------- Stage 5 ---------- */
+STAGE('Semicircular canals','3 orthogonal canals, ampulla, crista, cupula, endolymph lag, mirror symmetry','P1', [
+  T(mc('How many semicircular canals does each ear have, and what are they?',['3: anterior, posterior, horizontal (lateral)','2: anterior and posterior','3: superior, inferior, medial','4: one per direction plus one for gravity'],'Slide 7.',1)),
+  T(mc('Why are the canals orthogonal (at right angles)?',['To detect rotation in all 3 planes: pitch, roll, yaw','To detect linear acceleration in 3 directions','To separate perilymph from endolymph','To detect sound from 3 directions'],'Rotation, not linear.',1)),
+  so('mc','Contains otoliths (CaCO₃ crystals)','mac','⭐ The cupula has none.'),
+  so('mc','Stereocilia embedded in a gelatinous cupula','cri','Slide 7.'),
+  so('mc','Found in the utricle and saccule','mac','Otolith organs.'),
+  so('mc','Found in the ampulla','cri','Crista ampullaris.'),
+  so('mc','Detects rotational acceleration','cri','Canals.'),
+  so('mc','Detects head tilt relative to gravity','mac','Vestibule.'),
+  T(mc('The ampulla is:',['The bulged end of each canal that contains the crista ampullaris','The gelatinous structure over the hair cells','The crystal layer in the canals','The line of polarity reversal'],'One ampulla per canal, at one end.',1)),
+  T(mc('What does the cupula LACK compared with the otolithic membrane?',['Otoconia (crystals)','Gelatin','Hair cells beneath it','Stereocilia embedded in it'],'⭐ “No otoconia.” Slide 7.',1)),
+  T(mc('When the head starts to rotate, the endolymph in the canal:',['Lags behind because of inertia, deflecting the cupula','Moves ahead of the head','Stays still and the otoliths move instead','Drains into the cochlea'],'⭐ Slide 8. Like swirling the opposite way.',1)),
+  od('Order the steps of detecting a head rotation.',['Head rotates; ampulla moves with it','Endolymph lags due to inertia','Cupula is deflected','Stereocilia bend','Firing rises or falls from baseline'],'Slide 8.',1),
+  T(mc('In the semicircular canals, the force that bends the stereocilia comes from:',['Endolymph pushing the cupula','Heavy otoliths sliding','Perilymph pressure from the oval window','The tectorial membrane'],'Canals have no otoliths; the fluid does the work.',1)),
+  T(mc('The canals of the left and right ears are:',['Mirror-symmetric, and so is the polarity of their hair cells','Identical in orientation, with the same polarity','Arranged randomly','Mirror-symmetric, but with the same polarity'],'⭐ Both the canals AND the polarity are mirror symmetric.',1)),
+  T(mc('The head turns left. Using slide 8, what happens to the horizontal canal afferents?',['Left ↑ to ~180 spikes/sec; right ↓ to ~10 spikes/sec','Left ↓ to ~10; right ↑ to ~180','Both rise to ~180','Both stay at 90'],'⭐ The canal on the side you turn toward is excited.',1)),
+  T(mc('What is the resting firing rate of each horizontal canal afferent on slide 8?',['~90 spikes/sec','0 spikes/sec','~180 spikes/sec','~10 spikes/sec'],'Baseline, so it can go up or down.',1)),
+  T(mc('The head turns RIGHT. Which horizontal canal is excited?',['Right','Left','Both','Neither; only the vestibule responds'],'Side turned toward = excited.',1)),
+  T(mc('When the head turns, endolymph moves the same way in both ears. Why do the two ears send OPPOSITE signals?',['Hair cell polarity is mirror-symmetric, so the same flow bends one side toward and the other away from the kinocilium','The fluid moves opposite ways in the two ears','One ear has a cupula and the other has otoliths','The vestibular nuclei invert one side'],'⭐ Notes: mirror symmetry of polarity.',1)),
+  T(mc('How does the brain determine which way and how fast the head rotates?',['By comparing the firing rates from both sides (reciprocal pattern + rate coding)','By which canal has otoliths','By the loudness of endolymph','By the cochlea'],'⭐ “We’ve seen this strategy again and again.”',1)),
+  T(mc('Why does LINEAR acceleration not activate the semicircular canals?',['The circular shape means the fluid doesn’t swirl, so the cupula isn’t deflected','The canals have no hair cells','The cupula is too heavy','Linear motion closes the ampulla'],'⭐ Notes table: each organ detects only its own motion.',1)),
+  T(mc('Why does pure ROTATION not give a meaningful vestibule signal?',['Otoliths shift some, but the stereocilia only bend along two directions, so there’s no consistent signal','The vestibule has no otoliths','Rotation hyperpolarizes all vestibule hair cells equally','The vestibule is switched off during rotation'],'⭐ Exam callout: not interchangeable.',1)),
+  T(mc('A patient’s horizontal canals are damaged but the utricle and saccule are fine. Which will be hardest?',['Sensing turning the head side to side','Sensing a car braking','Sensing head tilt','Sensing an elevator stopping'],'Applied.',1)),
+  T(mc('True or False: The cupula contains otoconia, just like the macula.',['False','True'],'⭐ No otoconia.',1)),
+  T(mc('True or False: The endolymph moves ahead of the head when rotation begins.',['False','True'],'It lags behind.',1)),
+  T(mc('True or False: The semicircular canals detect linear acceleration in addition to rotation.',['False','True'],'Rotation only.',1)),
+]);
+
+/* ---------- Stage 6 ---------- */
+STAGE('Vestibulo-ocular reflex','⭐⭐ Trace the circuit, which muscles contract, the crossover, damage','P1', [
+  T(mc('What is the purpose of the vestibulo-ocular reflex (VOR)?',['Stabilize vision by moving the eyes opposite to the head so the image stays stable on the retina','Move the eyes in the same direction as the head','Keep the head level when the eyes move','Control pupil size during head movement'],'⭐ Slide 10. Her camera-without-stabilization analogy.',1)),
+  T(mc('During the VOR, the eyes move:',['In the opposite direction of the head','In the same direction as the head','Only up and down','Not at all; the head adjusts instead'],'Head right → eyes left.',1)),
+  od('⭐ Trace the VOR for a horizontal head turn.',['Horizontal semicircular canal','CN VIII (vestibular nerve)','Vestibular nuclei (pons/medulla)','Abducens nucleus','CN VI → lateral rectus / crossover → oculomotor nucleus → CN III → medial rectus'],'⭐ “I expect you to be able to reproduce the neural circuit.”',1),
+  T(mc('Which cranial nerve carries the signal from the semicircular canals to the brainstem?',['CN VIII (vestibular nerve)','CN VI','CN III','CN VII'],'CN VIII in, CN VI and CN III out.',1)),
+  T(mc('Where are the vestibular nuclei?',['Brainstem: pons and medulla','Thalamus','Cerebellum only','Midbrain tectum'],'Slide 10.',1)),
+  T(mc('From the vestibular nuclei, the signal goes next to the:',['Abducens nucleus','Oculomotor nucleus','Trochlear nucleus','Lateral geniculate nucleus'],'⭐ One-word swap trap: abducens first, THEN cross to oculomotor.',1)),
+  T(mc('The abducens nucleus controls which muscle via CN VI?',['Lateral rectus','Medial rectus','Superior oblique','Inferior rectus'],'Abduct = move outward = lateral rectus.',1)),
+  T(mc('How does the abducens signal reach the medial rectus of the OTHER eye?',['It crosses over to the oculomotor nucleus, which sends CN III to the medial rectus','Directly through CN VI','Through CN IV','Through CN VIII back to the eye'],'⭐ Slide 10, step 3-2.',1)),
+  T(mc('Why is the crossover to the oculomotor nucleus needed?',['So one vestibular signal moves BOTH eyes the same direction (lateral rectus of one + medial rectus of the other)','So the eyes move in opposite directions','So the head turns with the eyes','To send the signal to the cortex'],'⭐ Notes callout.',1)),
+  so('vor','Left lateral rectus','con','Head right → eyes left. Left eye moves out.'),
+  so('vor','Right medial rectus','con','Right eye moves in (to the left).'),
+  so('vor','Right lateral rectus','rel','Inhibitory side relaxes it, helping the eyes go left.'),
+  so('vor','Left medial rectus','rel','Inhibitory side relaxes it.'),
+  T(mc('Head rotates horizontally to the RIGHT. Which pair of muscles CONTRACTS?',['Left lateral rectus and right medial rectus','Right lateral rectus and left medial rectus','Both lateral recti','Both medial recti'],'⭐ Eyes must rotate LEFT.',1)),
+  T(mc('Head rotates to the RIGHT. Which canal is excitatory and which is inhibitory?',['Right canal excitatory, left canal inhibitory','Left canal excitatory, right canal inhibitory','Both excitatory','Both inhibitory'],'Notes worked example (red = right, blue = left).',1)),
+  T(mc('Head rotates to the LEFT. Which muscles contract?',['Right lateral rectus and left medial rectus','Left lateral rectus and right medial rectus','Both lateral recti','Left lateral rectus only'],'Colors flip → eyes move right.',1)),
+  T(mc('In the right-turn example, the right vestibular nuclei send their signal to the:',['LEFT abducens nucleus','RIGHT abducens nucleus','Right oculomotor nucleus directly','Left oculomotor nucleus directly'],'Crossing over at the vestibular nuclei level.',1)),
+  T(mc('In the right-turn example, which oculomotor nucleus is excited by the crossover from the left abducens?',['Right','Left','Both','Neither'],'Right oculomotor → right medial rectus.',1)),
+  T(mc('What does the inhibitory (blue) side of the circuit contribute?',['Relaxes the opposing muscles, which helps both eyes rotate','Nothing; only excitation matters','It contracts the same muscles harder','It closes the eyelids'],'Reciprocal: contract one, relax the antagonist.',1)),
+  T(mc('The VOR circuit is built for:',['All three canals and the utricle and saccule, so any head movement is compensated','Only the horizontal canals','Only the utricle','Only rotation to the right'],'Notes.')),
+  T(mc('⭐ A patient has damage to the LEFT abducens nucleus. During a RIGHT head turn, what goes wrong?',['The left lateral rectus can’t contract AND the crossover to the right medial rectus is lost, so the eyes don’t compensate','Only the right eye fails to move','Nothing; the left canal takes over','The eyes move in the same direction as the head'],'Trace the circuit: the left abducens drives both CN VI and the crossover.',1)),
+  T(mc('⭐ The crossover fibers to the oculomotor nucleus are cut. During a head turn:',['The lateral rectus still contracts but the other eye’s medial rectus doesn’t, so the eyes don’t move together','Both eyes move normally','Neither eye moves','Both eyes move with the head'],'Notes damage table.',1)),
+  T(mc('⭐ The right CN VIII is damaged. What happens to horizontal head turns?',['The brain loses the right side’s signal, so compensation is weaker and less accurate','Normal, because the left ear is enough','The eyes move with the head','Hearing improves'],'No matching excite/inhibit pair.',1)),
+  T(mc('⭐ A patient’s CN VI is damaged on one side. What would you see in the VOR?',['That eye can’t turn outward (lateral rectus) to compensate','That eye can’t turn inward','Both eyes are frozen','The head can’t turn'],'CN VI → lateral rectus.',1)),
+  T(mc('If ANY part of the VOR loop is broken, what does the patient experience when moving their head?',['Vision looks jumpy and blurry, like a camera with no stabilization','Loss of hearing','Loss of smell','Double tastes'],'⭐ Her analogy.',1)),
+  T(mc('Which of the following are TRUE about the VOR?\nI. CN VIII carries the signal from the canals\nII. The vestibular nuclei are in the pons/medulla\nIII. CN III controls the lateral rectus\nIV. The eyes move opposite to the head',['I, II, and IV','I and II','I, II, III, and IV','II, III, and IV'],'III: CN III → medial rectus; CN VI → lateral rectus.',1)),
+  T(mc('A student recalls: 1. The vestibular nuclei send the signal first to the oculomotor nucleus. 2. CN VI controls the lateral rectus. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'Vestibular nuclei → ABDUCENS first.',1)),
+  T(mc('True or False: In the VOR, the abducens nucleus controls the medial rectus via CN III.',['False','True'],'Abducens → CN VI → lateral rectus.',1)),
+  T(mc('True or False: When you turn your head right, both eyes rotate left.',['True','False'],'Opposite direction.')),
+]);
+
+/* ---------- Stage 7 ---------- */
+STAGE('Taste (gustation)','5 tastes, taste buds, no tongue map, regeneration, 80% smell, spatial coding','P2', [
+  so('ts','Glucose','sw','Energy-rich food.'),
+  so('ts','Quinine','bi','Slide example; bitter = warning for toxins.'),
+  so('ts','Na⁺','sa','Salty.'),
+  so('ts','H⁺','so','Sour = acidity.'),
+  so('ts','Glutamate (MSG)','um','Umami = protein.'),
+  so('ts','Signals possible toxic compounds','bi','Warning signal.'),
+  so('ts','Signals protein-rich food','um','Savory.'),
+  T(mc('Sour taste is triggered by:',['H⁺','Na⁺','Glutamate','Quinine'],'⭐ Classic swap with salty (Na⁺).',1)),
+  T(mc('Umami is triggered by:',['Glutamate','Glucose','H⁺','K⁺'],'Glutamate vs glucose: one-letter-ish swap.',1)),
+  T(mc('Each taste sensory cell expresses:',['Only one type of chemoreceptor','All five types of receptors','Two types: sweet and bitter','No receptors; the taste bud as a whole does'],'⭐ Slide 14.',1)),
+  T(mc('How can one taste bud detect all five tastes?',['It contains many sensory cells, each with one receptor type, mixed randomly','Each cell expresses all five receptors','Each taste bud has a different location on the tongue','The papillae switch receptors over time'],'⭐ Cell = one taste; bud = all five.',1)),
+  T(mc('The “tongue map” (sweet at the tip, bitter at the back, etc.) is:',['False; all 5 tastes are detected across most of the tongue','True for sweet and bitter only','True','True only in children'],'⭐ “That idea is incorrect. It’s false.”',1)),
+  T(mc('A taste bud’s sensitivity profile depends on:',['Its random mix of taste cell types, not its location','Its location on the tongue','The cranial nerve it uses','The papilla size'],'Notes.',1)),
+  T(mc('Where are taste buds found?',['Within the papillae on the tongue surface','Inside the olfactory epithelium','In the cribriform plate','On the cupula'],'Slide 14.')),
+  T(mc('How do taste buds recover from burns (hot coffee) and chewing damage?',['Stem cells regenerate all the cell types in about 10–14 days','They never regenerate','Neurons divide to replace them','Mitral cells replace them'],'⭐ “Stem cells can repair and regenerate taste buds.”',1)),
+  T(mc('With a stuffed nose from a cold, food tastes bland. Why?',['About 80% of flavor comes from smell, and odor can’t reach the receptors','The taste buds stop regenerating','The tongue map shifts','Appetite drops first, then taste'],'⭐ “Taste is 80% smell.” It’s the flavor sensation, not appetite, that drops first.',1)),
+  T(mc('“Taste is ___% smell.”',['80','20','50','95'],'⭐ “Remember that.”',1)),
+  T(mc('Why does taste alone give limited information?',['There are only 5 primary tastes','Taste buds die every day','Only one taste bud works at a time','Taste bypasses the thalamus'],'Smell adds the rest.')),
+  T(mc('How does the brain identify which taste you are experiencing?',['By which region of the gustatory cortex is activated (spatial coding)','By which molecule bound on the tongue','By the shape of the action potential','By the firing rate alone'],'⭐ “Extremely important coding strategy for sensations.”',1)),
+  T(mc('A sweet taste cell is engineered to express NaCl receptors. Salt is placed on the tongue. What is perceived?',['Sweet','Salty','Both sweet and salty','Nothing'],'⭐ Slide 16. The sweet pathway is activated.',1)),
+  T(mc('A salty taste cell is engineered to express sweet receptors. Sugar is placed on the tongue. What is perceived?',['Salty','Sweet','Both','Bitter'],'Reverse of the slide example. Pathway decides.',1)),
+  T(mc('Taste cells that detect the same taste send their signals to:',['The same region of the gustatory cortex','Random regions','The olfactory bulb','The same glomerulus'],'Glomerulus is smell, a near-miss term.',1)),
+  T(mc('Slide 16 says “hair cells that detect the same taste.” What did she mean?',['Taste receptor cells','Cochlear hair cells','Vestibular hair cells','Mitral cells'],'Slide wording slip.')),
+  T(mc('Spatial coding of taste is most like which earlier idea?',['Tonotopy: the brain reads pitch from location (Lec 19)','Rate coding of loudness','The ON/OFF pathway','Peristalsis'],'Location = identity.',1)),
+  T(mc('Which of the following are TRUE?\nI. One taste cell expresses one receptor type\nII. One taste bud detects only one taste\nIII. Taste cell types are randomly distributed\nIV. Stem cells regenerate taste buds',['I, III, and IV','I and III','I, II, III, and IV','II, III, and IV'],'II is her in-lecture trap: FALSE.',1)),
+  T(mc('A student recalls: 1. Each taste bud can detect all 5 tastes. 2. Each taste cell can detect all 5 tastes. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'⭐ Bud vs cell: the one-word swap.',1)),
+  T(mc('True or False: Salty taste is triggered by H⁺.',['False','True'],'Salty = Na⁺; sour = H⁺.',1)),
+  T(mc('True or False: The brain interprets taste from the chemical stimulus itself.',['False','True'],'From which brain area is activated.',1)),
+]);
+
+/* ---------- Stage 8 ---------- */
+STAGE('Smell (olfaction)','Path of smell, mucus, thalamus bypass, glomeruli, mitral cells, aroma patterns','P2', [
+  od('Order the path of an odor molecule.',['Inhaled into the nasal cavity','Dissolves in mucus at the roof','Binds receptors on olfactory neuron cilia','Axon passes the cribriform plate','Glomerulus in the olfactory bulb','Mitral cell → olfactory cortex'],'⭐ Notes, 6 steps.',1),
+  T(mc('What is unique about olfaction’s path to the cortex?',['It is the only sense that bypasses the thalamus','It is the only sense that crosses over','It is the only sense with a baseline firing rate','It relays through the thalamus twice'],'⭐ Exam callout.',1)),
+  T(mc('Why must odor molecules dissolve in mucus?',['They must dissolve before they can reach the receptors on the cilia','Mucus breaks them into tastes','Mucus amplifies the signal','Mucus carries them to the thalamus'],'⭐ A very dry nose makes smell less sensitive or impossible.',1)),
+  T(mc('A patient’s nasal mucosa is extremely dry. What happens to their sense of smell?',['It becomes less sensitive or even impossible','It becomes more sensitive','No change, because receptors are on the cilia','Only taste is affected'],'Applied.',1)),
+  T(mc('Olfactory neuron axons pass through the:',['Cribriform plate of the ethmoid bone','Foramen magnum of the occipital bone','Sella turcica of the sphenoid bone','Temporal bone'],'⭐ Transcript said “piriform plate of the asthmoid bone.”',1)),
+  T(mc('A skull fracture through the cribriform plate would most likely affect:',['Smell','Balance','Taste','Hearing'],'Applied anatomy.',1)),
+  T(mc('Each olfactory sensory neuron expresses:',['One type of receptor, specific for one molecule','All odor receptors','Two receptor types','No receptors; the mitral cell has them'],'⭐ Slide 19 (her simplified version; use it for the exam).',1)),
+  mt('Match each olfactory number from slide 19.',[['Olfactory neurons','~20 million'],['Distinguishable odors','~10,000'],['Neurons per odor','~2,000']],'Slide 19.',1),
+  T(mc('Neurons that detect the same odor molecule are located:',['Randomly scattered across the olfactory epithelium','Clustered together in one patch','Only at the tip of the nose','In the same glomerulus as their cell bodies'],'⭐ Scattered in the nose, but organized in the brain.',1)),
+  T(mc('Olfactory neurons that detect the SAME molecule send their axons to:',['The same glomerulus, where they synapse onto the same mitral cells','Random glomeruli','Directly to the thalamus','The gustatory cortex'],'⭐ Convergence by what they detect.',1)),
+  T(mc('Each glomerulus receives signals about:',['One odor molecule','All odors in the air','One taste','One mitral cell from every odor'],'One glomerulus = one odor molecule.',1)),
+  T(mc('Where are the glomeruli and mitral cells?',['Olfactory bulb','Olfactory epithelium','Nasal mucus','Olfactory cortex'],'Bulb = part of the brain.',1)),
+  T(mc('How do the axons “know” which glomerulus to go to?',['It is not understood','They follow the thalamus','They follow taste signals','Mitral cells pull them by gravity'],'“Isn’t that amazing?”')),
+  T(mc('How does the brain tell individual odors apart?',['By the location of the activated neurons in the olfactory cortex','By the firing rate alone','By the size of the odor molecule','By the taste bud activated'],'⭐ Spatial coding again.',1)),
+  T(mc('A rose releases a mixture of many chemicals. How does the brain recognize it?',['The mixture activates a distinct PATTERN of cortical neurons, which the brain learns and links to roses','One special rose molecule activates one neuron','The thalamus decodes the mixture','The glomeruli merge into one'],'⭐ Slide 20.',1)),
+  T(mc('A child instantly recognizes their mother’s perfume. What explains this?',['The brain learned and remembered that perfume’s activation pattern','The perfume contains a chemical unique to the mother','Taste cells detect the perfume','The vestibule detects it'],'Her example.',1)),
+  T(mc('Which of the following are TRUE?\nI. Olfaction bypasses the thalamus\nII. Same-odor neurons are clustered in one patch of epithelium\nIII. Same-odor axons converge on the same glomerulus\nIV. Odors must dissolve in mucus first',['I, III, and IV','I and III','I, II, III, and IV','II, III, and IV'],'II: they are randomly scattered.',1)),
+  T(mc('A student recalls: 1. Olfactory signals relay through the thalamus. 2. Mitral cells project to specific neurons in the olfactory cortex. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'⭐ It is the only sense that bypasses the thalamus.',1)),
+  T(mc('Which is the correct order of cells in the smell pathway?',['Olfactory sensory neuron → glomerulus → mitral cell → olfactory cortex','Mitral cell → glomerulus → olfactory neuron → cortex','Olfactory neuron → thalamus → mitral cell → cortex','Glomerulus → olfactory neuron → mitral cell → cortex'],'Order swap trap.',1)),
+  T(mc('True or False: Each of the 20 million olfactory neurons reports to the brain individually.',['False','True'],'They converge by what they detect.',1)),
+  T(mc('True or False: Each olfactory neuron can detect many different odor molecules.',['False','True'],'Her version: one receptor type, one molecule.',1)),
+]);
+
+/* ---------- Stage 9: her quiz style ---------- */
+STAGE('Her trap questions','Scenarios, I–IV combos, two-statement checks, links to other lectures','Mix', [
+  T(mc('A student recalls: 1. The utricle detects vertical acceleration. 2. The saccule detects horizontal acceleration. Which is accurate?',['Neither is accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate'],'Both swapped.',1)),
+  T(mc('A student recalls: 1. Semicircular canals detect rotation. 2. The cupula has otoconia. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'No otoconia in the cupula.',1)),
+  T(mc('A student recalls: 1. Vestibular hair cells have a baseline firing. 2. Bending away from the kinocilium decreases firing. Which is accurate?',['Both are accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Neither is accurate'],'Both correct. Don’t assume one must be wrong.')),
+  T(mc('A student recalls: 1. Olfaction bypasses the thalamus. 2. Taste is 80% smell. Which is accurate?',['Both are accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Neither is accurate'],'Two exam callouts, both true.')),
+  T(mc('A student recalls: 1. Type I hair cells are tonic. 2. Adaptation increases tip link tension. Which is accurate?',['Neither is accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate'],'Type I = phasic; adaptation decreases tension.',1)),
+  T(mc('Which of the following are TRUE?\nI. The vestibule detects head position relative to gravity\nII. The semicircular canals detect linear acceleration\nIII. The macula contains otoliths\nIV. The cupula is gelatinous',['I, III, and IV','I and III','I, II, III, and IV','II, III, and IV'],'II: canals = rotation.',1)),
+  T(mc('Which of the following are TRUE?\nI. Bending toward the kinocilium opens MET channels\nII. K⁺ and Ca²⁺ enter from the perilymph\nIII. Rate coding tells the brain direction and degree\nIV. Cochlear hair cells have no resting signal',['I, III, and IV','I and III','I, II, III, and IV','II and IV'],'II: from the ENDOLYMPH.',1)),
+  T(mc('Which of the following are FALSE?\nI. One taste bud can detect only one flavor\nII. The tongue map is accurate\nIII. Taste cells detecting the same taste project to the same cortical region\nIV. Stem cells regenerate taste buds',['I and II','I only','I, II, and III','II and IV'],'III and IV are true.',1)),
+  T(mc('Which of the following are FALSE?\nI. Vestibular nuclei → abducens nucleus\nII. Abducens → CN VI → medial rectus\nIII. Crossover → oculomotor nucleus → CN III\nIV. The eyes move in the same direction as the head',['II and IV','II only','IV only','I, II, and IV'],'II: lateral rectus. IV: opposite direction.',1)),
+  T(mc('Judy spins on the ice and then glides forward in a straight line and stops suddenly. Which organs detect each phase?',['Spin = semicircular canals; straight glide stop = utricle','Spin = utricle; stop = saccule','Both phases = semicircular canals','Both phases = cochlea'],'Rotation vs horizontal linear. (Applied.)',1)),
+  T(mc('After spinning in a chair and stopping suddenly, you feel like you’re still spinning. Best explanation from this lecture?',['Endolymph keeps moving from inertia and keeps deflecting the cupula','Otoliths are still sliding','The cochlea is resonating','The VOR has been cut'],'Inertia works both ways: lag at start, keep going at stop. (Applied.)')),
+  T(mc('A patient has lost all VOR function. They read a sign while walking. What do they report?',['The words bounce and blur with every step','The words look normal','They can’t smell anything','They hear the sign'],'Camera with no stabilization.',1)),
+  T(mc('A cold blocks your nose. You eat a strawberry and say it “tastes like nothing.” Which statement is correct?',['Your taste buds still detect sweet and sour, but the flavor (mostly smell) is missing','Your taste buds have stopped working','The tongue map changed','Strawberries have no taste molecules'],'⭐ Taste is 80% smell.',1)),
+  T(mc('A researcher wires olfactory neurons for odor X into the glomerulus normally used by odor Y. When the subject smells X, they perceive:',['Odor Y','Odor X','Both','Nothing'],'Spatial coding: location decides, like the bitter→sweet question. (Applied.)',1)),
+  T(mc('Which coding strategy do taste, smell and tonotopy (Lec 19) share?',['Spatial coding: which location is activated tells the brain what it is','Rate coding','Temporal coding','Population averaging'],'⭐ “Extremely important coding strategy.”',1)),
+  T(mc('Which coding strategy does the brain use for DIRECTION and DEGREE of head motion from a single afferent?',['Rate coding','Spatial coding','Tonotopy','Combination coding'],'Firing frequency up or down from baseline.',1)),
+  T(mc('Which pairing is correct?',['Macula → otoliths; crista → cupula','Macula → cupula; crista → otoliths','Utricle → crista; ampulla → macula','Saccule → cupula'],'Swapped pairs are her favorite distractors.',1)),
+  T(mc('Which pairing is correct?',['Sour → H⁺; salty → Na⁺','Sour → Na⁺; salty → H⁺','Umami → glucose; sweet → glutamate','Bitter → Na⁺'],'Swapped pairs.',1)),
+  T(mc('Which pairing is correct?',['CN VI → lateral rectus; CN III → medial rectus','CN VI → medial rectus; CN III → lateral rectus','CN VIII → lateral rectus','CN III → vestibular nuclei'],'VOR output.',1)),
+  T(mc('Which pairing is correct?',['Type I → phasic; Type II → tonic','Type I → tonic; Type II → phasic','Type I → horizontal; Type II → vertical','Type I → taste; Type II → smell'],'Slide 3.',1)),
+  T(mc('Which statement is FALSE?',['The vestibule detects rotation well because otoliths slide in all directions','Opposite signals across the striola confirm each other','Both ears send parallel vestibular information','Vestibular hair cells have a baseline'],'⭐ Rotation does not give a consistent vestibule signal.',1)),
+  T(mc('Which statement is FALSE?',['Olfactory signals relay through the thalamus like other senses','Mitral cells project to specific cortical neurons','Real aromas are mixtures of chemicals','The brain learns aroma patterns'],'⭐ Olfaction bypasses the thalamus.',1)),
+  T(mc('Which statement is FALSE?',['Hair cells on both sides of the striola depolarize together','Endolymph lags behind during head rotation','Canals are mirror-symmetric between ears','Adaptation uses myosin'],'Opposite responses across the striola.',1)),
+  T(mc('Opposite signals from the striola and from the two ears is the same strategy as:',['ON/OFF bipolar cells (Lec 18)','The visual cycle','Peristalsis','Dopamine reward signaling'],'Her connections table.',1)),
+  T(mc('Vestibular hair cells use the same transduction machinery as cochlear hair cells. Which is the same?',['Staircase stereocilia, tip links, mechanically gated channels, K⁺ in from endolymph','Baseline signal at rest','Bending in both directions','Otoliths'],'The other three are what makes the vestibule different.',1)),
+  T(mc('The VOR uses CN VIII in and CN VI + CN III out. Which earlier lecture idea is this like?',['A reflex arc: sensory input → brainstem interneurons → motor output to skeletal muscle','The direct/indirect pathway','The visual cycle','The enteric nervous system'],'Lec 14 link.')),
+  T(mc('True or False: The vestibule and semicircular canals are interchangeable; either can detect any head motion.',['False','True'],'⭐ “Not interchangeable.”',1)),
+  T(mc('True or False: In the pizza question, the answer is that pizza gives off many chemicals no other food has.',['False','True'],'⭐ Common chemicals, unique COMBINATION.',1)),
+  T(mc('True or False: If a bitter taste cell were wired to the sweet cortex, bitter molecules would taste sweet.',['True','False'],'⭐ Location decides.')),
+]);
+
+/* ---------- Stage 10: her in-lecture questions ---------- */
+function LQ(q,o,why){ return T(mc(q,o,why,1)); }
+STAGE('Her in-lecture questions','The five questions she worked through, word for word from the slides','Clicker', [
+  LQ('Which of the following best describes how the direction of head movement is encoded by vestibular hair cells?\n\nA. Hair cells fire action potentials in response to any direction of bending.\nB. Bending of stereocilia toward the kinocilium depolarizes the hair cell, while bending away from the kinocilium hyperpolarizes it.\nC. Hair cell activation is only dependent on the magnitude of movement, not its direction.\nD. None of the above',['B','A','C','D'],'A is “not completely true”: there is baseline firing even with no bending. C: “obviously not true,” direction changes the response.'),
+  LQ('Which of the following helps Judy balance herself during a sit spin in her skating program?\n\nA. Cochlea\nB. Vestibule\nC. Semicircular canals',['C','B','A','B and C'],'A spin is pure angular acceleration. The cochlea is for sound; the vestibule needs linear acceleration or tilt.'),
+  LQ('T/F: one taste bud can detect one flavor\n\nA. True\nB. False',['B. False','A. True'],'Each taste CELL detects one taste, but a bud mixes cell types, so one bud detects all 5.'),
+  LQ('If a bitter cell is engineered to synapse onto neurons in the sweet domain of the cortex, what sensation will it generate once stimulated by bitter molecules?\n\nA. Sweet\nB. Bitter\nC. Both sweet and bitter',['A. Sweet','B. Bitter','C. Both sweet and bitter'],'Location in the cortex decides the sensation, not the molecule.'),
+  LQ('A pizza has a unique smell because ________\n\nA. It gives off a unique chemical that no other food has\nB. It gives off many unique chemicals that no other food has\nC. It gives off many chemicals that other foods also offers, but the combination is unique',['C','B','A'],'“The key is combination.” Cheese, toppings and sauce show up in lots of other foods.'),
+]);
+
+
+</script>
+<script>
+const KEY='l20climb_v1';
+const store = { get(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } },
+  set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(e){} } };
+let SAVE = Object.assign({stars:{}, miss:[], best:0, theme:null}, store.get());
+if (SAVE.theme) document.documentElement.setAttribute('data-theme', SAVE.theme);
+const ALL = STAGES.flatMap(s=>s.items);
+const byId = Object.fromEntries(ALL.map(i=>[i.id,i]));
+const app = document.getElementById('app');
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const starHTML = n => '<i>'+'★'.repeat(n)+'</i>'+'★'.repeat(3-n);
+
+/* ---------- home ---------- */
+function home(){
+  // Stage map: vestibule → canals → taste and smell
+  const P=[[34,40],[80,56],[126,72],[172,86],[218,100],[264,112],[310,124],[356,136],[402,148],[448,160],[494,172]];
+  const curve = 'M'+P.map(p=>p.join(',')).join(' L');
+  const dots = STAGES.map((s,i)=>{const [x,y]=P[i]; const done=(SAVE.stars[i]||0)===3; return `<g class="dot${done?' done':''}" data-stage="${i}" role="button" tabindex="0" aria-label="Stage ${i+1}: ${esc(s.name)}"><circle cx="${x}" cy="${y}" r="11"></circle><text x="${x}" y="${y}">${i+1}</text></g>`;}).join('');
+  const missN = SAVE.miss.filter(id=>byId[id]).length;
+  const trN = ALL.filter(i=>i.trap).length;
+  const hyN = ALL.filter(i=>i.hy).length;
+  app.innerHTML = `
+  <div class="top"><span class="eyebrow">A&amp;P · Lecture 20</span><button class="ghost" id="theme">${themeLabel()}</button></div>
+  <div class="hero"><h1>Balance Smell Taste Climb</h1><p>Ten stops from the inner ear to the nose: the vestibule and macula, direction coding and baseline firing, slow adaptation, the striola, the semicircular canals, the VOR circuit (traced in words, with damage cases), taste, and smell. Built around her style: one-word swaps (utricle/saccule, toward/away, Type I/II, CN VI/III), two-statement checks, I–IV combos and scenarios. Stage 10 is her five in-lecture questions, word for word from the slides. No diagram questions.</p></div>
+  <div class="trace" aria-label="Stage map from balance to taste and smell">
+    <svg viewBox="0 0 510 200" role="img">
+      <line class="grid" x1="10" y1="182" x2="500" y2="182"></line>
+      <text class="ax" x="30" y="22">vestibule</text><text class="ax" x="120" y="58">hair cells · striola</text><text class="ax" x="80" y="130">canals · VOR</text><text class="ax" x="380" y="196">taste · smell</text>
+      <path class="curve" d="${curve}"></path>${dots}
+    </svg>
+  </div>
+  <div class="modes">
+    <button class="mode" data-mode="hy"><b>High-Yield Run</b><span>${hyN} starred items, shuffled</span></button>
+    <button class="mode" data-mode="miss" ${missN?'':'disabled'}><b>Your Misses</b><span>${missN?missN+' to clear':'Nothing missed yet'}</span></button>
+    <button class="mode" data-mode="trap"><b>Trap Drill</b><span>${trN} trap and scenario questions</span></button>
+    <button class="mode" data-mode="mix"><b>Mixed 20</b><span>20 random from every stage</span></button>
+  </div>
+  <div class="eyebrow" style="margin-bottom:8px">Stages · ${ALL.length} questions</div>
+  <div class="stages">${STAGES.map((s,i)=>`<button class="stage" data-stage="${i}"><span class="mv">${s.mv}</span><span><h3>${i+1}. ${esc(s.name)}</h3><small>${esc(s.sub)} · ${s.items.length} Qs</small></span><span class="stars">${starHTML(SAVE.stars[i]||0)}</span></button>`).join('')}</div>
+  <p class="foot">Stars count first-try accuracy: 90% for three, 75% for two, 50% for one. Anything you miss comes back at the end of the run until you get it, and lands in Your Misses.</p>`;
+  app.querySelectorAll('[data-stage]').forEach(b=>{ const go=()=>startRun('stage',+b.dataset.stage); b.addEventListener('click',go); b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+  app.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.mode)));
+  document.getElementById('theme').onclick = toggleTheme;
+  // stages list top = last stage climbs upward visually? keep order 1..8 for reading.
+}
+function themeLabel(){ const t=document.documentElement.getAttribute('data-theme'); return t==='dark'?'Dark':t==='light'?'Light':'Auto'; }
+function toggleTheme(){ const r=document.documentElement; const t=r.getAttribute('data-theme'); const n = t===null?'dark':t==='dark'?'light':null; if(n) r.setAttribute('data-theme',n); else r.removeAttribute('data-theme'); SAVE.theme=n; store.set(SAVE); document.getElementById('theme').textContent=themeLabel(); }
+
+/* ---------- run ---------- */
+let R=null;
+function startRun(mode, stage){
+  let items, title;
+  if(mode==='stage'){ items = STAGES[stage].items.slice(); title = (stage+1)+'. '+STAGES[stage].name; }
+  else if(mode==='hy'){ items = shuffle(ALL.filter(i=>i.hy)); title='High-Yield Run'; }
+  else if(mode==='miss'){ items = shuffle(SAVE.miss.map(id=>byId[id]).filter(Boolean)); title='Your Misses'; }
+  else if(mode==='trap'){ items = shuffle(ALL.filter(i=>i.trap)); title='Trap Drill'; }
+  else { items = shuffle(ALL).slice(0,20); title='Mixed 20'; }
+  R = {mode, stage, title, queue: items.map(it=>({it, retry:false})), total: items.length, firstRight:0, firstDone:0, score:0, streak:0, missed:[], pos:0};
+  renderItem();
+}
+function mult(){ return Math.min(4, 1+Math.floor(R.streak/3)); }
+function hud(){
+  const done = R.firstDone; const pct = Math.round(100*done/R.total);
+  return `<div class="hud"><div class="hudrow"><button class="ghost" id="quit">← Map</button><span>${esc(R.title)}</span><span>${R.score} pts <span class="mult">×${mult()}</span></span></div>
+  <div class="bar"><i style="width:${pct}%"></i></div><div class="hudrow"><span>${Math.min(done+1,R.total)} / ${R.total}${R.queue[R.pos]&&R.queue[R.pos].retry?' · retry':''}</span><span>streak ${R.streak}</span></div></div>`;
+}
+function figHTML(key, item){
+  const d = DIA[key]; if(!d) return '';
+  const mask = d.mask!==false;
+  let boxes = '';
+  if(item && (item.t==='lb'||item.t==='nm')){
+    let tIdx = -1;
+    if(item.t==='nm'){ let k=0; d.b.forEach((b,i)=>{ if(b[4]===item.name){ if(k===item.idx) tIdx=i; k++; } }); }
+    boxes = d.b.map((b,i)=>{
+      const cls = item.t==='lb' ? 'box tap' : (i===tIdx ? 'box target' : 'box');
+      if(!mask && item.t==='nm' && i!==tIdx) return '';
+      const tag = item.t==='lb' ? 'button' : 'div';
+      return `<${tag} class="${cls}" data-bi="${i}" data-name="${esc(b[4])}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" ${item.t==='lb'?'aria-label="covered label"':''}></${tag}>`;
+    }).join('');
+  }
+  return `<div class="fig ${mask?'':'nomask'}"><img src="${d.img}" alt="${esc(d.title)}">${boxes}</div><div class="figcap">${esc(d.title)}</div>`;
+}
+function renderItem(){
+  if(R.pos>=R.queue.length) return finish();
+  const {it, retry} = R.queue[R.pos];
+  const typeName = {mc:'Multiple choice',so:'Sort',od:'Order',mt:'Match',lb:'Tap the label',nm:'Name the box'}[it.t];
+  let body = '';
+  const tag = `<div class="tag">${typeName}${it.trap?' <span class="tr">trap</span>':''}${it.hy?' <span class="hy">high yield</span>':''}${retry?' · second chance':''}</div>`;
+  if(it.t==='mc'){
+    const opts = shuffle(it.o);
+    body = (it.ctx?`<div class="ctx">${esc(it.ctx)}</div>`:'') + (it.img?figHTML(it.img):'') + `<p class="q">${esc(it.q)}</p><div class="opts">${opts.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(it.t==='so'){
+    const S = SORTS[it.set];
+    body = `<p class="q">${esc(S.label)}</p><div class="sortitem">${esc(it.item)}</div><div class="cats">${S.cats.map(c=>`<button class="cat" data-key="${c[0]}" style="--cc:var(${c[2]})">${esc(c[1])}</button>`).join('')}</div>`;
+  } else if(it.t==='od'){
+    body = `<p class="q">${esc(it.q)}</p><div class="seq" id="seq"></div><div class="chips">${shuffle(it.steps).map(s=>`<button class="chip" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><div class="actions"><button class="ghostbtn" id="undo">Undo</button></div>`;
+  } else if(it.t==='mt'){
+    body = `<p class="q">${esc(it.q)}</p><div class="mtgrid"><div class="mtcol">${it.pairs.map(p=>`<button class="mtb L" data-v="${esc(p[0])}">${esc(p[0])}</button>`).join('')}</div><div class="mtcol">${shuffle(it.pairs.map(p=>p[1])).map(v=>`<button class="mtb Rr" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>`;
+  } else if(it.t==='lb'){
+    body = `<p class="q">Tap the covered label: <span style="color:var(--accent)">${esc(it.name)}</span></p>` + figHTML(it.dia,it);
+  } else if(it.t==='nm'){
+    const d=DIA[it.dia];
+    let opts;
+    if(it.o) opts = it.o.slice();
+    else { const names=[...new Set(d.b.map(b=>b[4]))].filter(n=>n!==it.name); opts=[it.ans, ...shuffle(names).slice(0,3)]; }
+    body = figHTML(it.dia,it) + `<p class="q">${esc(it.q||'Name the label in the orange box.')}</p><div class="opts">${shuffle(opts).map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  }
+  app.innerHTML = hud() + `<div class="card" id="card">${tag}${body}<div id="fb"></div></div>`;
+  document.getElementById('quit').onclick = ()=>{ R=null; home(); };
+  wire(it);
+  window.scrollTo(0,0);
+}
+function wire(it){
+  const card = document.getElementById('card');
+  if(it.t==='mc' || it.t==='nm'){
+    const right = it.t==='mc' ? it.o[0] : it.ans;
+    card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.v===right;
+      card.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.v===right) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      if(it.t==='nm'){ const t=card.querySelector('.box.target'); if(t){ t.classList.add('right'); } }
+      answer(ok, it.t==='nm' && !ok ? 'It was: '+it.ans : (ok?'':'Answer: '+right));
+    });
+  } else if(it.t==='so'){
+    card.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.key===it.key;
+      card.querySelectorAll('.cat').forEach(x=>{ x.disabled=true; if(x.dataset.key===it.key) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      const S=SORTS[it.set]; answer(ok, ok?'':'Answer: '+S.cats.find(c=>c[0]===it.key)[1]);
+    });
+  } else if(it.t==='lb'){
+    card.querySelectorAll('.box.tap').forEach(b=>b.onclick=()=>{
+      if(card.dataset.done) return; card.dataset.done=1;
+      const ok = b.dataset.name===it.name;
+      card.querySelectorAll('.box.tap').forEach(x=>{ x.disabled=true; if(x.dataset.name===it.name) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      answer(ok, ok?'':'The green outline shows where it is.');
+    });
+  } else if(it.t==='od'){
+    const seq=[]; const seqEl=document.getElementById('seq');
+    const draw=()=>{ seqEl.innerHTML = seq.map((s,i)=>`<div class="slot"><span>${i+1}</span><span>${esc(s)}</span></div>`).join(''); };
+    card.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+      seq.push(b.dataset.v); b.disabled=true; draw();
+      if(seq.length===it.steps.length){
+        const ok = seq.every((s,i)=>s===it.steps[i]);
+        seqEl.querySelectorAll('.slot').forEach((el,i)=>{ if(seq[i]!==it.steps[i]) el.classList.add('wrong'); });
+        document.getElementById('undo').disabled=true;
+        answer(ok, ok?'':'Correct order: '+it.steps.map((s,i)=>(i+1)+') '+s).join('  '));
+      }
+    });
+    document.getElementById('undo').onclick=()=>{ const v=seq.pop(); if(v==null) return; const c=[...card.querySelectorAll('.chip')].find(x=>x.dataset.v===v&&x.disabled); if(c) c.disabled=false; draw(); };
+  } else if(it.t==='mt'){
+    let selL=null; const made={};
+    const L=[...card.querySelectorAll('.mtb.L')], Rr=[...card.querySelectorAll('.mtb.Rr')];
+    L.forEach(b=>b.onclick=()=>{ if(b.classList.contains('paired')) return; L.forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); selL=b; });
+    Rr.forEach(b=>b.onclick=()=>{
+      if(!selL || b.classList.contains('paired')) return;
+      made[selL.dataset.v]=b.dataset.v; selL.classList.remove('sel'); selL.classList.add('paired'); b.classList.add('paired');
+      selL.textContent = selL.dataset.v+' → '+b.dataset.v; selL=null;
+      if(Object.keys(made).length===it.pairs.length){
+        const ok = it.pairs.every(p=>made[p[0]]===p[1]);
+        L.forEach(x=>{ const p=it.pairs.find(p=>p[0]===x.dataset.v); x.classList.add(made[p[0]]===p[1]?'right':'wrong'); });
+        answer(ok, ok?'':'Pairs: '+it.pairs.map(p=>p[0]+' → '+p[1]).join(' · '));
+      }
+    });
+  }
+}
+function answer(ok, extra){
+  const q = R.queue[R.pos];
+  if(!q.retry){
+    R.firstDone++;
+    if(ok){ R.firstRight++; }
+    else { R.missed.push(q.it.id); if(!SAVE.miss.includes(q.it.id)) SAVE.miss.push(q.it.id); }
+  }
+  if(ok){ R.score += 10*mult(); R.streak++; if(R.mode==='miss'||q.retry) SAVE.miss = SAVE.miss.filter(id=>id!==q.it.id); }
+  else { R.streak=0; R.queue.push({it:q.it, retry:true}); }
+  store.set(SAVE);
+  const fb = document.getElementById('fb');
+  fb.innerHTML = `<div class="fb ${ok?'ok':'no'}"><b>${ok?'Correct':'Not quite'}</b>${extra?esc(extra)+'<br>':''}${esc(q.it.why||'')}</div><button class="next" id="next">${R.pos+1<R.queue.length?'Next':'See results'}</button>`;
+  const n=document.getElementById('next'); n.onclick=()=>{ R.pos++; renderItem(); }; n.focus({preventScroll:true});
+  fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function finish(){
+  const acc = R.total? R.firstRight/R.total : 0;
+  const st = acc>=0.9?3:acc>=0.75?2:acc>=0.5?1:0;
+  if(R.mode==='stage'){ SAVE.stars[R.stage]=Math.max(SAVE.stars[R.stage]||0, st); }
+  SAVE.best=Math.max(SAVE.best||0,R.score); store.set(SAVE);
+  const missed=[...new Set(R.missed)].map(id=>byId[id]);
+  const label = it => it.t==='so'?it.item : (it.t==='lb'||it.t==='nm')? (it.q||'Label')+': '+it.ans : it.q;
+  app.innerHTML = `<div class="card result" style="margin-top:18px"><div class="eyebrow">${esc(R.title)}</div><h2>${st===3?'Summit':st===2?'Almost there':st===1?'Halfway up':'Keep climbing'}</h2>
+    <div class="big-stars">${starHTML(st)}</div>
+    <p class="stat">${R.firstRight}/${R.total} first try (${Math.round(acc*100)}%) · ${R.score} pts · best ${SAVE.best}</p>
+    ${missed.length?`<div class="eyebrow" style="margin-top:12px">Missed on first try</div><ul class="misslist">${missed.map(it=>`<li>${esc(label(it))}</li>`).join('')}</ul>`:''}
+    <div class="actions" style="margin-top:16px"><button class="next" id="again">Run it again</button><button class="ghostbtn" id="map">Back to map</button></div></div>`;
+  document.getElementById('again').onclick=()=>startRun(R.mode,R.stage);
+  document.getElementById('map').onclick=()=>{ R=null; home(); };
+}
+window.GAME = { cur: ()=> R && R.queue[R.pos] ? R.queue[R.pos].it : null, STAGES, DIA, SORTS, startRun, home };
+
+home();
+</script>

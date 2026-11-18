@@ -1,0 +1,606 @@
+<title>Hearing Climb</title>
+<meta name="description" content="Lecture 19 review game: hearing, from the eardrum to hair cell transduction">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+
+/* Layout: one narrow column; home = a path from the senses to the pupil, run = card + figure + choices */
+:root{
+  --bg:#EDF1EE; --panel:#FFFFFF; --panel2:#F6F8F6; --ink:#15201C; --muted:#5A6A64; --line:#CFD9D4;
+  --accent:#0C7A63; --accent-ink:#FFFFFF; --cover:#EE8A22; --cover-dim:#B9C4BF; --ok:#1C8A4B; --bad:#C2372C; --star:#D99A0B;
+  --c1:#2F6FB7; --c2:#8A5BB0; --c3:#0C7A63; --c4:#C9821A; --c5:#C4467E;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1513; --panel:#16201D; --panel2:#1B2723; --ink:#E3ECE8; --muted:#93A7A0; --line:#2A3A35;
+  --accent:#43CF9E; --accent-ink:#06231A; --cover:#F0922E; --cover-dim:#4A5853; --ok:#4FC47D; --bad:#F2695D; --star:#F2B930;
+  --c1:#6FA6EA; --c2:#B88BE0; --c3:#43CF9E; --c4:#EAA94A; --c5:#EE7BB0; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.box:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px}
+.hero h1{font-size:clamp(30px,7vw,46px);font-weight:800;line-height:1.02;letter-spacing:-.01em;margin-top:6px}
+.hero p{color:var(--muted);margin:8px 0 0;max-width:60ch}
+.trace{margin:18px 0 6px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 6px 4px;overflow:hidden}
+.trace svg{display:block;width:100%;height:auto}
+.trace .grid{stroke:var(--line);stroke-width:1}
+.trace .curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linejoin:round}
+.trace .dot{cursor:pointer}
+.trace .dot circle{fill:var(--panel);stroke:var(--accent);stroke-width:2.5}
+.trace .dot.done circle{fill:var(--accent)}
+.trace .dot text{font-family:var(--mono);font-size:12px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.trace .dot.done text{fill:var(--accent-ink)}
+.trace .ax{font-family:var(--mono);font-size:10px;fill:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0 22px}
+.mode{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.mode b{font-family:var(--display);font-weight:700;font-size:17px}
+.mode span{color:var(--muted);font-size:13px}
+.mode:disabled{opacity:.45;cursor:default}
+.stages{display:flex;flex-direction:column;gap:8px}
+.stage{display:grid;grid-template-columns:64px minmax(0,1fr) auto;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:left;width:100%}
+.stage .mv{font-family:var(--mono);font-size:13px;white-space:nowrap;color:var(--accent);font-variant-numeric:tabular-nums}
+.stage h3{font-size:18px;font-weight:700}
+.stage small{color:var(--muted);display:block;font-size:13px}
+.stars{font-size:16px;letter-spacing:2px;color:var(--line);white-space:nowrap}
+.stars i{font-style:normal;color:var(--star)}
+.foot{color:var(--muted);font-size:13px;margin-top:22px}
+/* run */
+.hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px 8px;display:flex;flex-direction:column;gap:8px}
+.hudrow{display:flex;align-items:center;gap:10px;justify-content:space-between;font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.mult{color:var(--accent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;margin-top:8px}
+.ctx{background:var(--panel2);border-left:3px solid var(--accent);padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:15px}
+.tag{display:inline-flex;gap:6px;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.tag .tr{color:var(--c2);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.tag .hy{color:var(--bad);border:1px solid currentColor;border-radius:4px;padding:0 5px}
+.q{font-size:18px;font-weight:700;margin:2px 0 12px;white-space:pre-line}
+.fig{position:relative;width:100%;margin:4px 0 4px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#fff}
+.fig img{display:block;width:100%;height:auto}
+.box{position:absolute;border-radius:3px;background:var(--cover-dim);border:0;padding:0}
+.box.target{background:var(--cover);box-shadow:0 0 0 2px var(--panel),0 0 0 4px var(--cover)}
+.box.tap{background:var(--cover);cursor:pointer}
+.box.tap:hover{filter:brightness(1.08)}
+.nomask .box{background:transparent}
+.nomask .box.target{background:color-mix(in srgb,var(--cover) 14%,transparent);box-shadow:none;outline:3px solid var(--cover);outline-offset:-3px}
+.box.right{background:transparent!important;outline:3px solid var(--ok);outline-offset:-1px;box-shadow:none}
+.box.wrong{background:transparent!important;outline:3px solid var(--bad);outline-offset:-1px;box-shadow:none}
+.figcap{font-size:12px;color:var(--muted);margin:2px 0 12px}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:11px 13px;font-size:16px}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--panel))}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--panel))}
+.opt:disabled{cursor:default}
+.sortitem{font-size:18px;font-weight:700;background:var(--panel2);border:1px dashed var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cat{border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 10%,var(--panel));border-radius:10px;padding:12px 10px;font-weight:700}
+.cat.right{outline:3px solid var(--ok);outline-offset:2px}
+.cat.wrong{outline:3px solid var(--bad);outline-offset:2px}
+.seq{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;min-height:20px}
+.seq .slot{font-family:var(--mono);font-size:14px;padding:8px 10px;border-radius:8px;background:color-mix(in srgb,var(--accent) 12%,var(--panel));display:flex;gap:8px}
+.seq .slot.wrong{background:color-mix(in srgb,var(--bad) 14%,var(--panel))}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--panel2);border:1.5px solid var(--line);border-radius:999px;padding:8px 13px;font-size:15px}
+.chip:disabled{opacity:.3}
+.mtgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.mtcol{display:flex;flex-direction:column;gap:8px}
+.mtb{text-align:left;background:var(--panel2);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.mtb.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.mtb.paired{opacity:.55}
+.mtb.right{border-color:var(--ok)} .mtb.wrong{border-color:var(--bad)}
+.fb{margin-top:14px;border-radius:10px;padding:12px 14px;font-size:15px}
+.fb.ok{background:color-mix(in srgb,var(--ok) 12%,var(--panel));border:1px solid var(--ok)}
+.fb.no{background:color-mix(in srgb,var(--bad) 10%,var(--panel));border:1px solid var(--bad)}
+.fb b{display:block;margin-bottom:2px}
+.next{margin-top:14px;width:100%;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:13px;font-weight:700;font-size:17px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.actions .next{flex:1 1 160px;margin-top:0}
+.actions .ghostbtn{flex:1 1 160px;background:none;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-weight:700}
+.result h2{font-size:30px;margin:6px 0}
+.big-stars{font-size:38px;letter-spacing:6px;color:var(--line)} .big-stars i{font-style:normal;color:var(--star)}
+.stat{font-family:var(--mono);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+.misslist{margin:12px 0 0;padding-left:18px;font-size:14px;color:var(--muted)}
+@media (max-width:440px){.stage{grid-template-columns:54px minmax(0,1fr) auto;gap:10px;padding:12px}.stars{font-size:13px;letter-spacing:1px}.cats{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+
+</style>
+<div class="wrap" id="app"></div>
+<script>
+const DIA = {};
+const STAGES = [];
+let _sid = 0;
+function STAGE(name, sub, mv, items){ const s = {name, sub, mv, items: items.flat()}; s.items.forEach((it,i)=>{ it.id = 's'+STAGES.length+'_'+i; it.stage = STAGES.length; }); STAGES.push(s); }
+function mc(q,o,why,red){ return {t:'mc',q,o,why,hy:!!red}; }
+function im(img,q,o,why,red){ return {t:'mc',img,q,o,why,hy:!!red}; }
+function so(set,item,key,why,red){ return {t:'so',set,item,key,why,hy:!!red}; }
+function od(q,steps,why,red){ return {t:'od',q,steps,why,hy:!!red}; }
+function mt(q,pairs,why,red){ return {t:'mt',q,pairs,why,hy:!!red}; }
+function lb(dia,name,why,red){ return {t:'lb',dia,name,why,hy:!!red}; }
+function nm(dia,name,why,red,q,x){ x=x||{}; return {t:'nm',dia,name,why,hy:!!red,q:q||null,o:x.o||null,ans:x.ans||name,idx:x.idx||0}; }
+function cs(text,steps,red,img){ return steps.map(s=>({t:'mc',ctx:text,img:img||null,q:s[0],o:s[1],why:s[2],hy:!!red})); }
+
+</script>
+<script>
+// ===== Lecture 19 content: Hearing =====
+function T(x){ (Array.isArray(x)?x:[x]).forEach(i=>i.trap=true); return x; }
+
+const SORTS = {
+  reg: {label: 'Outer, middle, or inner ear?', cats: [['out','Outer (external) ear','--c4'],['mid','Middle ear','--c1'],['inn','Inner (internal) ear','--c2']]},
+  fl: {label: 'Perilymph or endolymph?', cats: [['peri','Perilymph (low K⁺, like normal ECF)','--c1'],['endo','Endolymph (very high K⁺)','--c5']]},
+  div: {label: 'Which inner ear division detects this?', cats: [['coc','Cochlea','--c2'],['ves','Vestibule (utricle, saccule)','--c3'],['scd','Semicircular ducts','--c4']]},
+  ba: {label: 'Base or apex of the cochlea?', cats: [['base','Base (near oval window)','--c4'],['apex','Apex (helicotrema end)','--c2']]},
+  hc: {label: 'Inner hair cells or outer hair cells?', cats: [['ihc','Inner hair cells (IHC)','--c3'],['ohc','Outer hair cells (OHC)','--c5']]},
+  code: {label: 'What does the brain use this to code?', cats: [['pitch','Pitch (frequency)','--c2'],['loud','Loudness (amplitude)','--c4']]},
+  side: {label: 'Hair cell: apical side or basal side?', cats: [['ap','Apical (top, in endolymph)','--c5'],['bas','Basal / basolateral (bottom, in perilymph)','--c1']]},
+};
+
+/* ---------- Stage 1 ---------- */
+STAGE('Outer and middle ear','Auricle, eardrum, ossicles, protective muscles, Eustachian tube','P1', [
+  mc('What does the tympanic membrane convert?',['Sound waves (air vibration) into mechanical vibration','Mechanical vibration into electrical signals','Fluid waves into air waves','Electrical signals into sound'],'Slide 2. The electrical step happens much later, in hair cells.',1),
+  so('reg','Auricle','out','Outer ear: collects and funnels sound.'),
+  so('reg','Auditory canal (external acoustic meatus)','out','Outer ear tunnel to the eardrum.'),
+  so('reg','Tympanic membrane','out','Notes table: the eardrum is listed with the external ear.'),
+  so('reg','Malleus, incus, stapes','mid','The auditory ossicles.'),
+  so('reg','Tensor tympani','mid','Protective muscle on the malleus.'),
+  so('reg','Stapedius','mid','Protective muscle on the stapes.'),
+  so('reg','Eustachian tube','mid','Connects the middle ear to the nasopharynx.'),
+  so('reg','Cochlea','inn','Inner ear, hearing.'),
+  so('reg','Semicircular ducts','inn','Inner ear, rotation (Lecture 20).'),
+  so('reg','Perilymph and endolymph','inn','Fluids of the labyrinth.'),
+  od('Order the ossicle chain from the eardrum inward.',['Tympanic membrane','Malleus','Incus','Stapes','Oval window'],'⭐ Malleus is attached to the eardrum; stapes is attached to the oval window.',1),
+  T(mc('Which ossicle directly contacts the oval window?',['Stapes','Incus','Malleus','Tympanic membrane'],'⭐ She flagged it: the STAPES, not the incus.',1)),
+  T(mc('Which ossicle is attached to the tympanic membrane?',['Malleus','Stapes','Incus','None; the eardrum touches the oval window directly'],'Malleus → incus → stapes.',1)),
+  T(mc('The tensor tympani dampens loud sound by pulling on the:',['Malleus, medially, tensing the tympanic membrane','Stapes, tensing the oval window','Incus, separating it from the stapes','Eustachian tube, closing it'],'⭐ Exam callout: malleus, not stapes. The stapedius is the one on the stapes.',1)),
+  T(mc('The stapedius muscle protects the inner ear by:',['Pulling the stapes so the oval window membrane is tense and harder to vibrate','Pulling the malleus medially','Opening the Eustachian tube','Relaxing the tympanic membrane so it vibrates more'],'She added the stapedius beyond the slide.',1)),
+  mt('Match each protective muscle to what it pulls.',[['Tensor tympani','Malleus → tympanic membrane tense'],['Stapedius','Stapes → oval window tense']],'⭐ Notes table. Easy to swap.',1),
+  T(mc('A tense tympanic membrane will:',['Vibrate less, so less vibration reaches the inner ear','Vibrate more, amplifying sound','Equalize middle ear pressure','Drain fluid into the throat'],'A curved, tense eardrum resists vibration. That is the protective point.')),
+  T(mc('Why do the tensor tympani and stapedius exist?',['To dampen loud sounds so they don’t damage the inner ear','To amplify quiet sounds','To equalize pressure at altitude','To drain mucus'],'Both are protective. Amplification is an outer hair cell job.',1)),
+  mc('The Eustachian tube connects the middle ear to the:',['Nasopharynx','Auditory canal','Oral cavity directly','Inner ear'],'⭐ Nasopharynx = throat space behind the nasal cavity.',1),
+  T(mc('She wants the middle ear passage called the Eustachian tube. Which structure is it most often confused with?',['The auditory canal (outer ear)','The cochlear duct','The helicotrema','The round window'],'⭐ "Don’t confuse these." Canal = outer ear tunnel; Eustachian tube = middle ear to nasopharynx.',1)),
+  mt('Match each Eustachian tube function to how it works.',[['Pressure equalization','Lets middle ear air pressure match the atmosphere'],['Drainage','Moves fluid and mucus from the middle ear into the pharynx']],'Slide 2 + notes.',1),
+  T(mc('On a plane, a passenger’s ears hurt and sound muffled during descent. What is going on?',['Middle ear pressure no longer matches outside pressure, so the eardrum bulges','The cochlea stops resonating','The tensor tympani is paralyzed','Endolymph leaks into perilymph'],'Sealed middle ear air + changing outside pressure = eardrum bulges. Fix = Eustachian tube.',1)),
+  T(mc('Why does chewing gum on a plane help?',['Chewing and swallowing open the normally collapsed Eustachian tube','Chewing tenses the tensor tympani','Chewing changes outer ear pressure','Chewing drains the cochlea'],'⭐ The tube is normally collapsed.',1)),
+  T(mc('Which structure equalizes pressure during altitude changes?',['Eustachian tube (middle ear)','Outer ear','Auditory canal','Round window'],'⭐ In-lecture trap option C: the outer ear only exposes the OUTSIDE of the eardrum; equalizing means changing middle ear pressure.',1)),
+  T(mc('A child with a throat infection develops a middle ear infection. Best explanation?',['Mucus blocks Eustachian drainage and throat pathogens creep up the tube','Bacteria travel down the auditory canal','The cochlea pumps fluid into the middle ear','The tympanic membrane absorbs bacteria from blood'],'Notes, Part 1: blocked drainage + direct route from the nasopharynx.',1)),
+  T(mc('Why does the middle ear need drainage at all?',['Living cells make moisture and waste; standing fluid lets bacteria and fungi grow','To remove endolymph','To keep the cochlea dry','To release excess perilymph to the outer ear'],'Notes table.')),
+  T(mc('True or False: The Eustachian tube is normally held open.',['False','True'],'It is normally COLLAPSED; swallowing and chewing open it.',1)),
+  T(mc('True or False: The incus delivers vibration directly to the oval window.',['False','True'],'⭐ In-lecture option D. It is the stapes.',1)),
+  T(mc('Which of the following are TRUE?\nI. The auricle funnels sound to the eardrum\nII. The tensor tympani pulls the malleus\nIII. The Eustachian tube drains into the nasopharynx\nIV. The stapedius pulls the incus',['I, II, and III','I and II','II, III, and IV','I, II, III, and IV'],'IV: stapedius → stapes.',1)),
+  T(mc('Which pair of middle ear ligaments must you memorize?',['None; she said the ligaments are not required','Anterior malleal and posterior incudal','Stapedial and tympanic','Oval and round'],'⭐ Not required: "Don’t worry about these ligaments."')),
+]);
+
+/* ---------- Stage 2 ---------- */
+STAGE('Inner ear labyrinth','Bony vs membranous, perilymph vs endolymph, three divisions','P1', [
+  mt('Bony vs membranous labyrinth.',[['Bony labyrinth','Hard shell in the temporal bone; filled with perilymph; protects'],['Membranous labyrinth','Soft tubes inside; filled with endolymph; holds the receptors']],'⭐ Slide 4 + notes.',1),
+  T(mc('Which labyrinth contains the sensory receptors for hearing and balance?',['Membranous labyrinth','Bony labyrinth','Both equally','Neither; receptors are in the middle ear'],'The bony one encloses and protects.',1)),
+  T(mc('Endolymph is found:',['Inside the membranous labyrinth','In the space between the membranous labyrinth and the bone','In the middle ear','In the Eustachian tube'],'⭐ Perilymph = between membrane and bone; endolymph = inside the membranous tubes.',1)),
+  T(mc('In her glove analogy, the finger is the:',['Membranous labyrinth','Bony labyrinth','Perilymph','Tympanic membrane'],'Finger = membranous (soft, inside); glove = bony (outside).',1)),
+  T(mc('The bony labyrinth is located in the:',['Temporal bone','Occipital bone','Sphenoid bone','Middle ear cavity'],'Slide 4.')),
+  T(mc('Placing the membranous tube inside the bony cochlea divides the space into:',['3 parts: 2 perilymph spaces + 1 endolymph space','2 parts: 1 perilymph + 1 endolymph','3 endolymph spaces','4 equal spaces'],'Notes: this is what makes the three scalae.',1)),
+  T(mc('Why does she say the different ion concentrations of perilymph and endolymph are important?',['They are essential for hearing to happen (hair cell transduction)','They make the cochlea spiral','They hold the ossicles in place','They set the hearing range'],'⭐ "That will be essential for hearing to happen." Comes back in Part 3.',1)),
+  so('fl','Scala vestibuli','peri','Perilymph.'),
+  so('fl','Scala tympani','peri','Perilymph.'),
+  so('fl','Scala media (cochlear duct)','endo','⭐ Endolymph.',1),
+  so('fl','Fluid bathing the stereocilia','endo','The apical surface sits in endolymph.',1),
+  so('fl','Fluid bathing the basal part of the hair cell','peri','Below the tight junctions = perilymph.',1),
+  so('fl','Fluid inside the bony labyrinth, outside the membranous one','peri','Perilymph.'),
+  so('fl','Fluid with K⁺ higher than inside the cell (~150 mM)','endo','⭐ Endolymph flips the usual gradient.',1),
+  so('div','Sound vibration','coc','Cochlea = hearing.'),
+  so('div','Linear acceleration (riding in an elevator)','ves','Utricle and saccule.'),
+  so('div','Head position relative to gravity (tilting the head)','ves','Vestibule.'),
+  so('div','Spinning in a chair','scd','Rotational (angular) movement.'),
+  so('div','Nodding “yes” (rotation in one plane)','scd','Rotation in three planes = semicircular ducts.'),
+  T(mc('A patient can hear normally but feels dizzy whenever they turn their head. Which inner ear part is most likely affected?',['Semicircular ducts','Cochlea','Tympanic membrane','Ossicles'],'Rotational head movement → semicircular ducts. Details come in Lecture 20.')),
+  T(mc('Which part of the inner ear is covered in THIS lecture?',['Cochlea','Vestibule','Semicircular ducts','All three equally'],'Vestibule and semicircular ducts are Lecture 20.')),
+  T(mc('True or False: The vestibule detects rotational head movement.',['False','True'],'Vestibule = linear acceleration + position vs gravity. Rotation = semicircular ducts.',1)),
+  T(mc('True or False: The bony labyrinth is filled with endolymph.',['False','True'],'Perilymph. One swapped word.',1)),
+]);
+
+/* ---------- Stage 3 ---------- */
+STAGE('Cochlea chambers and membranes','Three scalae, two windows, three membranes','P1', [
+  mt('Match each chamber to its fluid.',[['Scala vestibuli','Perilymph'],['Scala media (cochlear duct)','Endolymph'],['Scala tympani','Perilymph']],'⭐ Slide 5.',1),
+  mt('Match each window to its job.',[['Oval window','Stapes contacts it; sends vibration into scala vestibuli'],['Round window','Pressure relief; vibration passes out of scala tympani']],'⭐ Slide 5.',1),
+  mt('Match each membrane to its location.',[['Vestibular (Reissner’s) membrane','Between scala vestibuli and scala media'],['Basilar membrane','Between scala media and scala tympani'],['Tectorial membrane','Overlays the hair cells of the organ of Corti']],'⭐ Slide 5.',1),
+  T(mc('The organ of Corti is housed in the:',['Scala media (cochlear duct)','Scala vestibuli','Scala tympani','Helicotrema'],'⭐ And it sits on the basilar membrane.',1)),
+  T(mc('The oval window opens into the:',['Scala vestibuli','Scala tympani','Scala media','Eustachian tube'],'Round window = scala tympani.',1)),
+  T(mc('The round window is associated with the:',['Scala tympani','Scala vestibuli','Scala media','Middle ear muscles'],'Scala tympani ends at the round window.',1)),
+  T(mc('The organ of Corti sits on which membrane?',['Basilar membrane','Vestibular (Reissner’s) membrane','Tectorial membrane','Tympanic membrane'],'Tectorial = roof over it.',1)),
+  T(mc('Which membrane separates the cochlear duct from the scala tympani?',['Basilar membrane','Vestibular membrane','Tectorial membrane','Round window membrane'],'Vestibular membrane is on the other side (scala vestibuli).',1)),
+  T(mc('Which membrane is NOT a wall between two scalae?',['Tectorial membrane','Basilar membrane','Vestibular membrane','None; all three are walls'],'The tectorial membrane is a slanted roof over the hair cells inside the cochlear duct.',1)),
+  T(mc('Where do scala vestibuli and scala tympani connect?',['At the apex, through the helicotrema','At the base, through the oval window','Through the cochlear duct','They never connect'],'⭐ Separated almost everywhere, except at the helicotrema.',1)),
+  T(mc('Why does the cochlea need a flexible round window?',['A closed rigid fluid system can’t move; the round window lets the stapes displace perilymph','To let endolymph drain to the throat','To amplify high pitches','To let the stapes contact the scala tympani'],'Animation recap: without it the fluid could not be pushed.',1)),
+  T(mc('A student says: “The scala media is filled with perilymph and contains the organ of Corti.” What is wrong?',['The fluid: scala media holds endolymph','The location: the organ of Corti is in the scala tympani','Nothing, it is correct','The organ of Corti is in the vestibule'],'One swapped word, her favorite trick.',1)),
+  T(mc('Which of the following are TRUE?\nI. The scala vestibuli receives vibration from the oval window\nII. The cochlear duct is filled with endolymph\nIII. The round window bulges outward for pressure relief\nIV. The tectorial membrane lies between scala media and scala tympani',['I, II, and III','I and II','II, III, and IV','I, II, III, and IV'],'IV describes the basilar membrane.',1)),
+  T(mc('The cochlea is best described as:',['A spiral, fluid-filled tube, like a snail shell','A straight bony canal','A gas-filled chamber','A set of three loops'],'The three loops are the semicircular ducts.')),
+  T(mc('True or False: The vestibular membrane is the same as Reissner’s membrane.',['True','False'],'Two names, same membrane.')),
+  T(mc('True or False: The basilar membrane separates the scala vestibuli from the scala media.',['False','True'],'That is the vestibular (Reissner’s) membrane.',1)),
+]);
+
+/* ---------- Stage 4 ---------- */
+STAGE('Sound path and resonance','The 7-step path, when the cochlear duct joins in, resonance','P1–P2', [
+  od('Order the sound path through the cochlea (no resonance yet).',['Oval window (vibrated by stapes)','Scala vestibuli, wave travels UP','Helicotrema at the apex','Scala tympani, wave travels DOWN','Round window bulges outward'],'⭐ Steps 1–5, slide 6.',1),
+  od('If resonance occurs, order what happens next.',['Vestibular membrane vibrates at a frequency-specific location','Endolymph in the cochlear duct moves','Basilar membrane vibrates','Organ of Corti bounces and hair cells are activated'],'Steps 6–7 + notes: vibration goes ACROSS the duct.',1),
+  od('Full recap: order the whole route from air to brain.',['Auditory canal','Tympanic membrane','Malleus → incus → stapes','Oval window','Perilymph waves in the scalae','Basilar membrane resonates at one spot','Hair cells release glutamate','Cochlear nerve to the brain'],'Her animation recap.',1),
+  T(mc('⭐ Without resonance, is the cochlear duct (scala media) involved?',['No; the wave just runs up the scala vestibuli and down the scala tympani','Yes; it always vibrates with every sound','Only for loud sounds','Only at the base'],'⭐ Exam callout. Fluid moves PARALLEL to the membranes and barely moves them.',1)),
+  T(mc('Which change makes the organ of Corti activate?',['Resonance, so vibration goes ACROSS the duct from vestibular to basilar membrane','A louder sound in the scala vestibuli','The wave reaching the round window','The stapes touching the scala media'],'⭐ "The organ of Corti is only activated when resonance happens."',1)),
+  T(mc('In the sound path, the wave crosses from scala vestibuli to scala tympani at the:',['Helicotrema','Round window','Basilar membrane','Oval window'],'Step 3.',1)),
+  T(mc('In which direction does the wave travel in the scala tympani?',['Down, from the apex toward the round window','Up, from the base toward the apex','Across, into the cochlear duct','Out through the Eustachian tube'],'Up in vestibuli, down in tympani.',1)),
+  T(mc('She says the wave “arrives at the oval window” at the end of the path. What did she mean?',['The round window; scala tympani ends there','The oval window is correct','The helicotrema','The tympanic membrane'],'Transcript slip in her notes. End of the path = round window.')),
+  T(mc('Which best describes resonance?',['Amplified vibration when an external frequency matches a system’s natural frequency','Equal vibration at all frequencies','Bigger vibration with louder sound','Loss of vibration as sound passes through liquid'],'⭐ In-lecture question, answer C.',1)),
+  T(mc('⭐ Resonance depends on:',['Frequency (pitch)','Amplitude (loudness)','Both equally','The size of the auricle'],'⭐ "Loudness doesn’t induce resonance."',1)),
+  so('code','Frequency of vibration','pitch','Frequency = pitch.'),
+  so('code','Amplitude of vibration','loud','Amplitude = loudness.'),
+  so('code','WHICH spot on the basilar membrane resonates','pitch','⭐ Place coding.',1),
+  so('code','HOW FAST the afferent neuron fires','loud','Rate coding, slide 18.',1),
+  so('code','Which specific auditory neuron is active','pitch','1-to-1 map.',1),
+  so('code','How much glutamate the hair cell releases','loud','More bending → more NT → more APs.',1),
+  mt('Match each sound property.',[['Frequency','Pitch, and whether resonance happens'],['Amplitude','Loudness']],'Notes table.',1),
+  T(mc('A tone is played louder and louder at a frequency that does NOT match the vessel’s natural frequency. What happens?',['Still no resonance; loudness does not create resonance','Resonance eventually starts once it is loud enough','The natural frequency shifts to match','The vessel resonates at its apex'],'⭐ Applied version of option B.',1)),
+  T(mc('In the fluid basin video, most pitches did what?',['Nothing noticeable; the liquid stayed flat','Made one tall wave each','Made the vessel crack','Made bumps at the same place for every pitch'],'Only certain specific pitches made patterns.',1)),
+  T(mc('In the basin video, what happened as the pitch changed?',['The location of the bumps shifted','The bumps got taller but stayed put','Every pitch made the same pattern','The fluid drained'],'⭐ Direct relationship between pitch and LOCATION of peak vibration.',1)),
+  T(mc('How is the cochlea DIFFERENT from the fluid basin?',['Each pitch makes only ONE tall wave in the cochlea','The cochlea makes many bumps per pitch','The cochlea resonates with only a few pitches','The cochlea is not fluid-filled'],'⭐ Exam callout: one peak per pitch.',1)),
+  T(mc('In the basin, liquid standing higher at a spot means:',['Maximum vibration amplitude at that location','No vibration there','The sound is louder there','Fluid is leaking'],'Bumps = large amplitude; valleys = small.')),
+  T(mc('Pitch is the same thing as:',['Frequency of vibration','Amplitude of vibration','Speed of sound','Number of ossicles moving'],'Low pitch = low frequency.')),
+]);
+
+/* ---------- Stage 5 ---------- */
+STAGE('Tonotopy and pitch','Base vs apex, 20–20,000 Hz, 1-to-1 map, implants','P2', [
+  mc('What is the human hearing range?',['20 Hz to 20,000 Hz','2 Hz to 2,000 Hz','200 Hz to 200,000 Hz','20 Hz to 2,000 Hz'],'⭐ Slide 11.',1),
+  mc('Tonotopic organization is:',['An orderly map of sound frequency to location along the cochlea','The loudness range of the ear','The order of the ossicles','The ion gradient across hair cells'],'A spatial map of frequency.',1),
+  so('ba','Narrow and stiff basilar membrane','base','⭐ Base.',1),
+  so('ba','Wide and floppy basilar membrane','apex','⭐ Apex.',1),
+  so('ba','Resonates with high frequencies (~20,000 Hz)','base','⭐ High → base.',1),
+  so('ba','Resonates with low frequencies (~20 Hz)','apex','⭐ Low → apex.',1),
+  so('ba','Closest to the oval window','base','The base is where sound enters.'),
+  so('ba','Where the helicotrema is','apex','Helicotrema = apex.'),
+  T(mc('High-frequency sounds resonate:',['Near the base, where the basilar membrane is narrow and stiff','Near the apex, where it is wide and floppy','Near the base, where it is wide and stiff','Evenly along the whole membrane'],'⭐ Watch the paired description; both parts must match.',1)),
+  T(mc('A 50 Hz hum mostly activates hair cells near the:',['Apex','Base','Oval window','Round window'],'Low frequency → apex.',1)),
+  T(mc('Which statement about the basilar membrane is TRUE?',['It is narrower and stiffer at the base','It is wider and stiffer at the base','It is narrower and floppier at the base','It is the same width everywhere'],'⭐ In-lecture option E was false because of “wider.”',1)),
+  T(mc('How does the brain tell a 2000 Hz tone from a 200 Hz tone?',['By WHICH location’s hair cells (and their specific neurons) are activated','By the shape of the action potentials','By the type of neurotransmitter released','By how loud the tone is'],'⭐ "I need you to understand": pitch is read from location. The signals themselves look the same.',1)),
+  T(mc('How are hair cells mapped onto auditory neurons?',['1 to 1: each hair cell location connects to a specific neuron','Each neuron receives hair cells from many locations','Random connections','All hair cells converge on one neuron'],'⭐ In-lecture option D was false for this reason.',1)),
+  T(mc('Which design features make tonotopy possible?\nI. Basilar membrane narrow/stiff at base, wide/floppy at apex\nII. Bony labyrinth wider at one end, narrower at the other\nIII. The spiral structure\nIV. A larger eardrum',['I, II, and III','I only','I and III','I, II, III, and IV'],'Her list of design features; the eardrum is not one.',1)),
+  T(mc('The cochlea is designed so that each frequency:',['Resonates at only ONE specific location','Resonates at many locations','Resonates only if loud','Resonates at the helicotrema'],'"The brilliant part."',1)),
+  T(mc('Why do cochlear implant users struggle to appreciate an orchestra?',['An implant resonates with only a few hundred frequencies, not the full continuous range','Implants only respond to loud sounds','Implants send signals to the wrong cortex','Implants cannot reach the oval window'],'⭐ Her side point.',1)),
+  T(mc('“The cochlea can resonate with only a few sound frequencies between 20 and 20,000 Hz.” This is true of:',['A cochlear implant, not the natural cochlea','The natural cochlea','Both','Neither, because the range is wrong'],'⭐ In-lecture option A.',1)),
+  T(mc('A patient has damage only to the base of the cochlea. What do they most likely lose?',['High-pitch hearing','Low-pitch hearing','All hearing','Only loudness perception'],'Applied tonotopy.',1)),
+  T(mc('A researcher stimulates auditory neurons that are wired to the apex region. What does the subject hear?',['A low pitch','A high pitch','Nothing, because the cochlea wasn’t vibrated','A loud sound at every pitch'],'The brain reads location, so apex neurons = low pitch.',1)),
+  T(mc('A tone doubles in loudness but stays at 4000 Hz. Which changes?',['The firing rate of the neurons at the 4000 Hz spot','The location of peak vibration','Which neurons are active','The tonotopic map'],'Location = pitch (unchanged). Rate = loudness.',1)),
+  T(mc('True or False: High-frequency sounds resonate near the apex, where the membrane is floppy and wide.',['False','True'],'⭐ In-lecture option C. The membrane description is right for the apex but the frequency is wrong.',1)),
+  T(mc('True or False: All auditory neurons send identical-looking APs, so the brain must use location to know the pitch.',['True','False'],'Notes: the signal itself looks the same.',1)),
+]);
+
+/* ---------- Stage 6 ---------- */
+STAGE('Organ of Corti','Supporting cells, IHC vs OHC, stereocilia, tectorial membrane','P3', [
+  mt('Match each part of the organ of Corti to its job.',[['Basilar membrane','Vibrates with resonance; sets the stage for hair cell activation'],['Supporting cells','Tight junctions that separate endolymph from perilymph'],['Hair cells','The sensory cells'],['Tectorial membrane','Gel-like, anchored roof that stereocilia hit']],'⭐ Slide 15.',1),
+  so('hc','~1 row','ihc','Inner = 1 row (medial).'),
+  so('hc','~3 rows','ohc','Outer = 3 rows.'),
+  so('hc','Primary sensory receptors for hearing','ihc','⭐'),
+  so('hc','Give ~95% of afferent signals to the brain','ihc','⭐ Afferent = TO the brain.',1),
+  so('hc','Receive efferent signals from the brain','ohc','⭐ Easy to swap.',1),
+  so('hc','Actively change length to boost basilar membrane vibration','ohc','The swing analogy.',1),
+  so('hc','Fine-tune and amplify sound','ohc','Amplifiers.'),
+  T(mc('⭐ Which hair cells send signals TO the brain?',['Inner hair cells','Outer hair cells','Supporting cells','Both equally'],'⭐ IHC = afferent. OHC = efferent input.',1)),
+  T(mc('Outer hair cells amplify vibration by:',['Actively changing length in time with basilar membrane movement','Releasing more glutamate','Sending action potentials to the brain','Stiffening the tectorial membrane'],'Swing analogy: pull in or extend your legs at the right time.',1)),
+  T(mc('In her swing analogy, what plays the role of the person pumping their legs?',['Outer hair cells','Inner hair cells','Tectorial membrane','Stapes'],'OHCs time their length changes to boost the swing (basilar membrane).',1)),
+  T(mc('A drug blocks efferent signals from the brain to the cochlea. Which cells are most directly affected?',['Outer hair cells','Inner hair cells','Afferent neurons','Supporting cells'],'OHCs receive efferent input. (Applied.)',1)),
+  T(mc('If ALL inner hair cells were destroyed but outer hair cells were intact, the person would:',['Lose most hearing, since IHCs carry ~95% of afferent signals','Hear normally, since OHCs amplify','Hear only high pitches','Hear louder than normal'],'Amplifiers without the main receptor don’t help much.',1)),
+  T(mc('In a cross section, one drawn hair cell represents:',['One ROW of hair cells','A single hair cell','One stereocilium','The whole organ of Corti'],'Notes: the slide is a cross section.')),
+  T(mc('Why are hair cells called “hair” cells?',['A bundle of stereocilia on the apical surface','Each cell is one long hair','They have true motile cilia that beat','They grow from hair follicles'],'Don’t confuse one stereocilium with one hair cell.')),
+  T(mc('Stereocilia on a hair cell are arranged:',['In 3 rows of different lengths, a staircase from short to tall','In identical rows of equal height','Randomly across the surface','In a single tall row'],'⭐ In-lecture option C was false.',1)),
+  T(mc('⭐ The tectorial membrane is:',['Anchored medially and relatively stationary','Vibrating along with the basilar membrane','Attached to the basilar membrane','A wall between two scalae'],'⭐ It must stay still so stereocilia bend against it.',1)),
+  T(mc('Why must the tectorial membrane stay relatively stationary?',['If it moved with the hair cells, the stereocilia wouldn’t bend against it','So it can resonate at its own frequency','So endolymph can drain','So the stapes can push on it'],'Bending needs something stationary to push against.',1)),
+  T(mc('The tectorial membrane is made of:',['Gel-like extracellular matrix','Hair cells','Bone','Neurons'],'Slide 15.')),
+  T(mc('The organ of Corti is made of which tissue type?',['Epithelial cells (hair cells + supporting cells)','Neurons only','Muscle','Bone'],'Hair cells are specialized epithelial cells.')),
+  T(mc('Which statement about the basilar membrane is TRUE?',['It vibrates up and down with resonance','It is stiff and immobile, just a support','It is part of the tectorial membrane','It lies above the hair cells'],'⭐ In-lecture option A was false.',1)),
+  T(mc('She said inner hair cells generate 95% of the “efferent” signals. Which word is correct?',['Afferent (the slide is right)','Efferent','Both','Neither; IHCs send no signals'],'Transcript slip noted in her notes.')),
+  T(mc('True or False: Inner hair cells amplify sound and receive efferent signals from the brain.',['False','True'],'⭐ In-lecture option B. That describes OUTER hair cells.',1)),
+  T(mc('True or False: The tectorial membrane vibrates as the basilar membrane vibrates.',['False','True'],'⭐ In-lecture option D. It is anchored to the bony labyrinth.',1)),
+]);
+
+/* ---------- Stage 7 ---------- */
+STAGE('Hair cell transduction','Tip links, trap door, K⁺ in, Ca²⁺, glutamate','P3', [
+  od('Order mechanoelectrical transduction.',['Basilar membrane vibrates; hair cells bounce','Stereocilia bend against the tectorial membrane, toward the tallest','Tip links pull the cation (K⁺) channels open','K⁺ flows in from endolymph; cell depolarizes','Voltage-gated Ca²⁺ channels open at the base','Ca²⁺ triggers exocytosis of glutamate','Afferent neuron fires action potentials','K⁺ leaks out into perilymph; back to rest'],'⭐ Her 10-step table, condensed.',1),
+  so('side','Stereocilia with tip-link cation channels','ap','Top of the cell.',1),
+  so('side','Bathed in endolymph','ap','Above the tight junctions.',1),
+  so('side','Voltage-gated Ca²⁺ channels','bas','⭐ Basolateral surface.',1),
+  so('side','Glutamate exocytosis onto the afferent neuron','bas','Basal surface.',1),
+  so('side','K⁺ leak channels returning the cell to rest','bas','K⁺ leaks into low-K⁺ perilymph.',1),
+  T(mc('Stereocilia must bend in which direction to open the channels?',['Toward the tallest one (kinocilium)','Toward the shortest one','Any direction works','Downward into the cell'],'⭐ Slide 17.',1)),
+  T(mc('What do tip links connect?',['The tip of a shorter stereocilium to a cation channel on the side of its taller neighbor','The tectorial membrane to the basilar membrane','The hair cell to the afferent neuron','Two hair cells to each other'],'Slide 17.',1)),
+  T(mc('Why does she compare the channel to a trap door?',['Bending stretches the tip link, which is not elastic, so it yanks the channel open','The channel slowly dissolves','The channel opens when the cell depolarizes','The channel is opened by a ligand'],'Mechanical gating.',1)),
+  T(mc('How large a deflection is enough to open the channels?',['Less than the diameter of an atom','About the width of a hair cell','About 1 mm','Only a full 90° bend'],'Slide 17. Extreme sensitivity.')),
+  T(mc('⭐ Which ion mainly flows INTO the hair cell when the channels open?',['K⁺','Na⁺','Cl⁻','Ca²⁺ through the tip-link channel'],'⭐ Nonselective cation channel, but in endolymph the current is mostly K⁺.',1)),
+  T(mc('K⁺ entering the hair cell causes:',['Depolarization','Hyperpolarization','No change, since K⁺ normally causes hyperpolarization','An action potential in the hair cell'],'⭐ Unusual: K⁺ IN = depolarization, because of endolymph.',1)),
+  T(mc('⭐ Do hair cells fire action potentials?',['No; a small depolarization is enough to release glutamate','Yes; every bend triggers an AP in the hair cell','Only inner hair cells do','Only for loud sounds'],'⭐ The afferent neuron is what fires.',1)),
+  T(mc('Which cell actually fires the action potential sent to the brain?',['The afferent sensory neuron under the hair cell','The inner hair cell','The outer hair cell','The supporting cell'],'Notes step 9.',1)),
+  T(mc('Which neurotransmitter do hair cells release?',['Glutamate','GABA','Acetylcholine','Dopamine'],'Slide 17.',1)),
+  T(mc('What directly triggers neurotransmitter exocytosis in a hair cell?',['Ca²⁺ entry through voltage-gated Ca²⁺ channels','K⁺ entry through tip-link channels','Na⁺ entry at the base','Tectorial membrane pressure'],'K⁺ depolarizes; Ca²⁺ triggers release.',1)),
+  T(mc('How does depolarization at the top reach the Ca²⁺ channels at the bottom?',['Local current spreading through the cell','An action potential propagating down','Diffusion of glutamate','Movement of the tectorial membrane'],'Notes step 7. No AP.')),
+  T(mc('What returns the hair cell to resting potential?',['K⁺ leaks out through basal K⁺ leak channels into low-K⁺ perilymph','K⁺ is pumped back into endolymph by ATP','Na⁺ flows in at the base','The tectorial membrane resets it'],'Slide 17 last step.',1)),
+  T(mc('A drug blocks voltage-gated Ca²⁺ channels on hair cells. What fails?',['Glutamate release, so the afferent neuron doesn’t fire','Stereocilia bending','K⁺ entry','Basilar membrane resonance'],'Everything upstream still works. (Applied.)',1)),
+  T(mc('A mutation makes tip links elastic and stretchy. Most likely result?',['Bending no longer pulls the channels open well, so hearing is impaired','Hearing becomes more sensitive','The cell fires its own APs','The tectorial membrane starts vibrating'],'The trap door works because the tip link is NOT elastic. (Applied.)',1)),
+  T(mc('A toxin glues the stereocilia so they can’t bend. Which step fails FIRST?',['Opening of the tip-link cation channels','Ca²⁺ entry','Glutamate release','Basilar membrane vibration'],'Earliest broken step.',1)),
+  T(mc('Hair cell transduction is called mechanoelectrical because:',['It converts mechanical vibration into an electrical neural signal','It uses both muscles and nerves','It needs ATP and electricity','The hair cells move electrically'],'Done "single-handedly by the hair cells."')),
+  T(mc('True or False: The tip-link channel is ligand-gated, like the cGMP channel in photoreceptors.',['False','True'],'Hair cell channel = MECHANICALLY gated. Photoreceptor = cGMP (ligand) gated.',1)),
+]);
+
+/* ---------- Stage 8 ---------- */
+STAGE('Why endolymph matters','Flipped K⁺ gradient, tight junctions, no energy, rate coding','P3', [
+  T(mc('⭐ What is special about endolymph?',['Its K⁺ (~150 mM) is HIGHER than intracellular K⁺','Its K⁺ is lower than normal ECF','It has no ions','It has the same composition as perilymph'],'⭐ Everywhere else, extracellular K⁺ is ~10x lower than intracellular.',1)),
+  T(mc('Why does K⁺ flow INTO hair cells when everywhere else K⁺ flows OUT?',['Endolymph K⁺ is higher than inside the cell, flipping the usual gradient','The cell pumps K⁺ in','Tip links push K⁺ in mechanically','Perilymph is higher in K⁺'],'⭐ Links to Lecture 7 resting potential.',1)),
+  T(mc('Which gradients favor K⁺ entry at the stereocilia?',['Both the concentration and the electrical gradients','Only the concentration gradient','Only the electrical gradient','Neither; it needs ATP'],'Notes step 6.',1)),
+  T(mc('What keeps endolymph and perilymph from mixing at the organ of Corti?',['Tight junctions between hair cells and supporting cells near the top','The tectorial membrane','The basilar membrane alone','Gap junctions'],'⭐ Slide 15 and 17.',1)),
+  T(mc('If the tight junctions between hair cells and supporting cells broke down, what would happen?',['Endolymph and perilymph would mix, the K⁺ gradient would be lost, and transduction would fail','Hair cells would depolarize more strongly','Nothing; the basilar membrane still vibrates','Only pitch perception would be lost'],'Applied: no barrier, no special gradient.',1)),
+  T(mc('⭐ How much energy does the transduction process itself cost?',['Essentially none; ions move down their gradients spontaneously','A lot; pumps run with every bend','ATP for each tip-link opening','Energy only for K⁺ leaking out'],'⭐ "It does not really cost any energy."',1)),
+  T(mc('Why is the K⁺ gradient maintained while the channels are open?',['K⁺ comes in at the top and leaks out at the bottom into low-K⁺ perilymph','The hair cell stores K⁺','The tectorial membrane absorbs K⁺','K⁺ is converted to Ca²⁺'],'In at the apical side, out at the basal side.',1)),
+  T(mc('The basal part of the hair cell sits in:',['Perilymph (low K⁺)','Endolymph (high K⁺)','Air','Blood'],'She misspoke “endolymph below”; the fluid below is perilymph.',1)),
+  T(mc('If perilymph were replaced with high-K⁺ fluid, what would fail?',['K⁺ leak out at the base, so the cell couldn’t return to rest','K⁺ entry at the top','Basilar membrane resonance','Stereocilia bending'],'Applied: the exit route needs low K⁺.',1)),
+  T(mc('Hair cells show which epithelial features?\nI. Apical vs basal polarity\nII. Tight junctions with neighbors\nIII. Different channels on each side\nIV. Action potentials along an axon',['I, II, and III','I and II','I, II, III, and IV','II and III'],'IV: hair cells don’t fire APs and have no axon.',1)),
+  od('Order rate coding for loudness.',['Louder sound → more bending','More K⁺ channel opening','More voltage-gated Ca²⁺ opening','More glutamate released','Higher AP firing frequency in the afferent neuron'],'Slide 17.',1),
+  T(mc('Loudness is coded by:',['Firing rate of the afferent neuron','Location on the basilar membrane','Which neuron fires','Whether resonance happens'],'Location codes pitch; rate codes loudness.',1)),
+  T(mc('A sound gets quieter at the same pitch. What happens at the hair cell?',['Less bending, less glutamate, lower AP frequency at the SAME location','A different location resonates','Hair cells stop releasing glutamate entirely','Outer hair cells become afferent'],'Same place, lower rate.',1)),
+  T(mc('Which is TRUE about the endolymph’s composition compared with normal extracellular fluid?',['It is unusual: high K⁺, unlike normal ECF','It is identical to normal ECF','It is like perilymph','It is just blood plasma'],'Perilymph is the one like normal ECF.')),
+  T(mc('True or False: Hair cell transduction requires ATP to push K⁺ into the cell with each bend.',['False','True'],'⭐ It is spontaneous; ions move down gradients.',1)),
+  T(mc('True or False: Endolymph K⁺ is about 10 times LOWER than intracellular K⁺, like all other extracellular fluids.',['False','True'],'That describes normal ECF and perilymph. Endolymph is the exception.',1)),
+]);
+
+/* ---------- Stage 9: her quiz style ---------- */
+STAGE('Her trap questions','Scenarios, I–IV combos, two-statement checks, links to other lectures','Mix', [
+  T(mc('A student recalls: 1. The tensor tympani pulls the stapes. 2. The stapes contacts the oval window. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'Tensor tympani → malleus.',1)),
+  T(mc('A student recalls: 1. Resonance depends on loudness. 2. High pitches resonate at the base. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'Resonance depends on frequency.',1)),
+  T(mc('A student recalls: 1. Outer hair cells send 95% of afferent signals. 2. Inner hair cells change length to amplify. Which is accurate?',['Neither is accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate'],'Both are swapped IHC/OHC.',1)),
+  T(mc('A student recalls: 1. K⁺ flows into hair cells and depolarizes them. 2. Hair cells then fire action potentials to the brain. Which is accurate?',['Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Both are accurate','Neither is accurate'],'Hair cells release glutamate; the afferent neuron fires.',1)),
+  T(mc('A student recalls: 1. The cochlear duct vibrates with every sound. 2. The wave crosses from scala vestibuli to scala tympani at the helicotrema. Which is accurate?',['Statement 2 is accurate; statement 1 is not','Statement 1 is accurate; statement 2 is not','Both are accurate','Neither is accurate'],'Cochlear duct joins in only with resonance.',1)),
+  T(mc('A student recalls: 1. The bony labyrinth is filled with perilymph. 2. The membranous labyrinth contains the receptors. Which is accurate?',['Both are accurate','Statement 1 is accurate; statement 2 is not','Statement 2 is accurate; statement 1 is not','Neither is accurate'],'Both correct. Don’t assume one must be wrong.')),
+  T(mc('Which of the following are TRUE?\nI. The stapes contacts the oval window\nII. Resonance depends on frequency, not loudness\nIII. The tectorial membrane vibrates with the basilar membrane\nIV. Hair cells don’t fire action potentials',['I, II, and IV','I and II','II, III, and IV','I, II, III, and IV'],'III: it is anchored and stationary. Four flagged facts in one item.',1)),
+  T(mc('Which of the following are TRUE?\nI. Low frequencies resonate at the apex\nII. The basilar membrane is wide and floppy at the base\nIII. Each pitch makes one peak in the cochlea\nIV. Hair cells map 1 to 1 onto auditory neurons',['I, III, and IV','I and III','I, II, III, and IV','II, III, and IV'],'II: narrow and stiff at the base.',1)),
+  T(mc('Which of the following are TRUE?\nI. Endolymph K⁺ is higher than intracellular K⁺\nII. Tight junctions separate endolymph and perilymph\nIII. K⁺ leaks out at the apical side\nIV. Transduction costs essentially no energy',['I, II, and IV','I and II','I, II, III, and IV','II, III, and IV'],'III: K⁺ leaks out at the BASAL side into perilymph.',1)),
+  T(mc('Which of the following are FALSE?\nI. The Eustachian tube connects to the nasopharynx\nII. The outer ear equalizes pressure at altitude\nIII. The incus contacts the oval window\nIV. The tensor tympani pulls the stapes',['II, III, and IV','II and III','I, II, III, and IV','III and IV'],'Same logic as her in-lecture question.',1)),
+  T(mc('A patient has ear fullness, muffled hearing and pain after a cold, and the eardrum looks pushed inward. What is the most likely cause?',['Blocked Eustachian tube, so middle ear pressure can’t equalize','Ruptured basilar membrane','Loss of outer hair cells','Damaged cochlear nerve'],'Middle ear problem from the throat side.',1)),
+  T(mc('A factory worker exposed to loud high-pitched machinery for years now can’t hear high pitches but hears low ones fine. Which region is damaged?',['Hair cells near the base','Hair cells near the apex','The helicotrema','The Eustachian tube'],'High frequency → base. (Applied.)',1)),
+  T(mc('A drug makes outer hair cells unable to change length. What is the expected effect?',['Reduced amplification and fine-tuning, so quiet sounds are harder to hear','Total deafness','Loss of pitch location map','Hair cells start firing APs'],'IHCs still work; amplification is lost.',1)),
+  T(mc('In an experiment, endolymph is replaced with fluid that has the same K⁺ as perilymph. What happens when stereocilia bend?',['Little or no K⁺ influx, so the hair cell barely depolarizes','Bigger depolarization','The cell hyperpolarizes from Na⁺','Normal hearing'],'The driving force came from high endolymph K⁺. (Applied.)',1)),
+  T(mc('Which pairing is correct?',['Tensor tympani → malleus','Stapedius → malleus','Tensor tympani → stapes','Stapedius → incus'],'Swapped pairs are her favorite distractors.',1)),
+  T(mc('Which pairing is correct?',['Oval window → scala vestibuli','Oval window → scala tympani','Round window → scala vestibuli','Round window → cochlear duct'],'Slide 5.',1)),
+  T(mc('Which pairing is correct?',['Inner hair cells → afferent','Inner hair cells → efferent','Outer hair cells → 95% of afferent','Outer hair cells → 1 row'],'Slide 15.',1)),
+  T(mc('Which pairing is correct?',['Basilar membrane → organ of Corti sits on it','Tectorial membrane → between scala media and scala tympani','Vestibular membrane → overlays hair cells','Basilar membrane → anchored and stationary'],'Slide 5.',1)),
+  T(mc('Which statement is FALSE?',['Loudness induces resonance','The cochlea resonates with frequencies from 20 to 20,000 Hz','Each pitch has one peak on the basilar membrane','The brain reads pitch from location'],'⭐ "Loudness doesn’t induce resonance."',1)),
+  T(mc('Which statement is FALSE?',['The tectorial membrane is attached to the basilar membrane','Stereocilia bend toward the tallest one','Tip links pull open cation channels','Voltage-gated Ca²⁺ channels are at the base'],'It is anchored to the bony cochlea, not the basilar membrane.',1)),
+  T(mc('Which statement is FALSE?',['Hair cells fire action potentials when K⁺ enters','Endolymph is high in K⁺','Glutamate is released at the basal surface','The afferent neuron fires APs'],'⭐ Hair cells don’t fire APs.',1)),
+  T(mc('Which links Lecture 19 to Lecture 18 correctly?',['Both hair cells and photoreceptors use graded potentials and release glutamate, without firing APs','Hair cells hyperpolarize to sound like photoreceptors to light','Both use cGMP-gated channels','Both release GABA'],'Her connections table.',1)),
+  T(mc('Hair cell vs photoreceptor channel gating: which is correct?',['Hair cell = mechanically gated (tip link); photoreceptor = cGMP (ligand) gated','Both mechanically gated','Both voltage gated','Hair cell = ligand gated; photoreceptor = mechanically gated'],'Both then use voltage-gated Ca²⁺ at the terminal.',1)),
+  T(mc('The tonotopic map of the cochlea is most like which earlier idea?',['The topographic visual map and the somatosensory homunculus','The ON/OFF pathways','The visual cycle','The direct/indirect basal ganglia pathways'],'Location on the sensor maps to a location in the brain.')),
+  T(mc('Tight junctions separating endolymph from perilymph are most like which earlier structure?',['RPE tight junctions forming the blood-retina barrier','Gap junctions in cardiac muscle','Synaptic clefts','Myelin'],'Her connections table: epithelial seal.')),
+  T(mc('Outer hair cells receiving signals FROM the brain is an example of:',['Efferent signaling','Afferent signaling','A reflex arc with no brain','Paracrine signaling'],'Efferent = from the CNS outward.')),
+  T(mc('In a typical neuron, opening K⁺ channels causes hyperpolarization. Why is the hair cell the opposite?',['Endolymph flips the K⁺ gradient, so K⁺ moves IN','Hair cells have no K⁺ inside','The channels are reversed','Hair cells have a positive resting potential'],'Lec 7 link.',1)),
+  T(mc('True or False: Sound vibration in the scala vestibuli always moves the basilar membrane, even without resonance.',['False','True'],'⭐ Without resonance, fluid moves parallel and barely moves it.',1)),
+  T(mc('True or False: The brain tells pitch by the shape of the action potential from each auditory neuron.',['False','True'],'By location of activation.',1)),
+  T(mc('True or False: The Eustachian tube drains the middle ear into the throat.',['True','False'],'⭐ In-lecture option E: “throat” is a bit general, but “it’s not wrong.”',1)),
+]);
+
+/* ---------- Stage 10: her in-lecture questions ---------- */
+function LQ(q,o,why){ return T(mc(q,o,why,1)); }
+STAGE('Her in-lecture questions','The four questions she worked through, from the slides','Clicker', [
+  LQ('Which of the following statements are FALSE? (Select all that apply)\n\nA. The auditory ossicles transmit mechanical vibrations from the tympanic membrane to the inner ear.\nB. The tensor tympani muscle pulls the stapes to prevent excessive vibration.\nC. The outer ear plays a key role in pressure equalization during altitude changes.\nD. The incus directly contacts the oval window to deliver sound vibrations to the inner ear.\nE. The Eustachian tube allows drainage from the middle ear into the throat to prevent fluid buildup',['B, C, and D','B and D','B, C, D, and E','C and D'],'B: tensor tympani pulls the MALLEUS. C: equalization = Eustachian tube (middle ear). D: STAPES contacts the oval window. E is true ("could be better, but it’s not wrong").'),
+  LQ('Which of the following best describes resonance?\n\nA. The process by which all frequencies produce equal vibrations in a system.\nB. The louder the sound, the higher the vibration amplitude.\nC. Amplified vibrations occurs when external vibration frequency matches a system’s natural frequency.\nD. The decrease in vibration amplitude when sound waves pass through a liquid.',['C','B','A','D'],'B is the trap: loudness = amplitude, and resonance has nothing to do with loudness.'),
+  LQ('Which of the following statements are True?\n\nA. The cochlea can resonate with only a few sound frequencies between 20 Hz and 20,000 Hz.\nB. Each sound frequency activates the Organ of Corti at one specific location in the cochlea, creating a pitch-location map.\nC. High-frequency sounds resonate near the apex of the cochlea where the membrane is floppy and wide.\nD. Each auditory neurons in the brain can be activated by different hair cells at different locations within cochlea.\nE. The Basale membrane is wider and stiffer at the base of the cochlea',['B only','B and E','B and D','A and B'],'A = cochlear implant. C = low frequency at the apex. D = 1-to-1 mapping. E = NARROWER and stiffer.'),
+  LQ('Which of the following statements are True?\n\nA. The basilar membrane is stiff and immobile, serving as a support for hair cells.\nB. Inner hair cells amplify sound vibrations and primarily receive efferent signals from the brain.\nC. Hair cell stereocilia are identical and arranged even across the apical surface of hair cells.\nD. The tectorial membrane vibrates as the Basale membrane vibrates.\nE. None of the above',['E. None of the above','D','B','A'],'A: it must vibrate. B: that’s outer hair cells. C: staircase of different lengths. D: tectorial is anchored.'),
+]);
+
+</script>
+<script>
+const KEY='l19climb_v1';
+const store = { get(){ try{ return JSON.parse(localStorage.getItem(KEY))||{}; }catch(e){ return {}; } },
+  set(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(e){} } };
+let SAVE = Object.assign({stars:{}, miss:[], best:0, theme:null}, store.get());
+if (SAVE.theme) document.documentElement.setAttribute('data-theme', SAVE.theme);
+const ALL = STAGES.flatMap(s=>s.items);
+const byId = Object.fromEntries(ALL.map(i=>[i.id,i]));
+const app = document.getElementById('app');
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const starHTML = n => '<i>'+'★'.repeat(n)+'</i>'+'★'.repeat(3-n);
+
+/* ---------- home ---------- */
+function home(){
+  // Stage map: eardrum → cochlea → hair cell
+  const P=[[34,40],[80,56],[126,72],[172,86],[218,100],[264,112],[310,124],[356,136],[402,148],[448,160],[494,172]];
+  const curve = 'M'+P.map(p=>p.join(',')).join(' L');
+  const dots = STAGES.map((s,i)=>{const [x,y]=P[i]; const done=(SAVE.stars[i]||0)===3; return `<g class="dot${done?' done':''}" data-stage="${i}" role="button" tabindex="0" aria-label="Stage ${i+1}: ${esc(s.name)}"><circle cx="${x}" cy="${y}" r="11"></circle><text x="${x}" y="${y}">${i+1}</text></g>`;}).join('');
+  const missN = SAVE.miss.filter(id=>byId[id]).length;
+  const trN = ALL.filter(i=>i.trap).length;
+  const hyN = ALL.filter(i=>i.hy).length;
+  app.innerHTML = `
+  <div class="top"><span class="eyebrow">A&amp;P · Lecture 19</span><button class="ghost" id="theme">${themeLabel()}</button></div>
+  <div class="hero"><h1>Hearing Climb</h1><p>Ten stops from the eardrum to the hair cell: ossicles and the Eustachian tube, the labyrinth, the three scalae, the sound path and resonance, tonotopy, the organ of Corti, transduction, and why endolymph matters. Built around her style: one-word swaps, IHC/OHC and base/apex traps, patient scenarios, two-statement checks and I–IV combos. Stage 10 is her four in-lecture questions from the slides. No diagram questions.</p></div>
+  <div class="trace" aria-label="Stage map from the eardrum to the hair cell">
+    <svg viewBox="0 0 510 200" role="img">
+      <line class="grid" x1="10" y1="182" x2="500" y2="182"></line>
+      <text class="ax" x="30" y="22">eardrum</text><text class="ax" x="110" y="62">labyrinth</text><text class="ax" x="60" y="130">scalae · resonance · tonotopy</text><text class="ax" x="380" y="196">hair cells · K⁺</text>
+      <path class="curve" d="${curve}"></path>${dots}
+    </svg>
+  </div>
+  <div class="modes">
+    <button class="mode" data-mode="hy"><b>High-Yield Run</b><span>${hyN} starred items, shuffled</span></button>
+    <button class="mode" data-mode="miss" ${missN?'':'disabled'}><b>Your Misses</b><span>${missN?missN+' to clear':'Nothing missed yet'}</span></button>
+    <button class="mode" data-mode="trap"><b>Trap Drill</b><span>${trN} trap and scenario questions</span></button>
+    <button class="mode" data-mode="mix"><b>Mixed 20</b><span>20 random from every stage</span></button>
+  </div>
+  <div class="eyebrow" style="margin-bottom:8px">Stages · ${ALL.length} questions</div>
+  <div class="stages">${STAGES.map((s,i)=>`<button class="stage" data-stage="${i}"><span class="mv">${s.mv}</span><span><h3>${i+1}. ${esc(s.name)}</h3><small>${esc(s.sub)} · ${s.items.length} Qs</small></span><span class="stars">${starHTML(SAVE.stars[i]||0)}</span></button>`).join('')}</div>
+  <p class="foot">Stars count first-try accuracy: 90% for three, 75% for two, 50% for one. Anything you miss comes back at the end of the run until you get it, and lands in Your Misses.</p>`;
+  app.querySelectorAll('[data-stage]').forEach(b=>{ const go=()=>startRun('stage',+b.dataset.stage); b.addEventListener('click',go); b.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+  app.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>startRun(b.dataset.mode)));
+  document.getElementById('theme').onclick = toggleTheme;
+  // stages list top = last stage climbs upward visually? keep order 1..8 for reading.
+}
+function themeLabel(){ const t=document.documentElement.getAttribute('data-theme'); return t==='dark'?'Dark':t==='light'?'Light':'Auto'; }
+function toggleTheme(){ const r=document.documentElement; const t=r.getAttribute('data-theme'); const n = t===null?'dark':t==='dark'?'light':null; if(n) r.setAttribute('data-theme',n); else r.removeAttribute('data-theme'); SAVE.theme=n; store.set(SAVE); document.getElementById('theme').textContent=themeLabel(); }
+
+/* ---------- run ---------- */
+let R=null;
+function startRun(mode, stage){
+  let items, title;
+  if(mode==='stage'){ items = STAGES[stage].items.slice(); title = (stage+1)+'. '+STAGES[stage].name; }
+  else if(mode==='hy'){ items = shuffle(ALL.filter(i=>i.hy)); title='High-Yield Run'; }
+  else if(mode==='miss'){ items = shuffle(SAVE.miss.map(id=>byId[id]).filter(Boolean)); title='Your Misses'; }
+  else if(mode==='trap'){ items = shuffle(ALL.filter(i=>i.trap)); title='Trap Drill'; }
+  else { items = shuffle(ALL).slice(0,20); title='Mixed 20'; }
+  R = {mode, stage, title, queue: items.map(it=>({it, retry:false})), total: items.length, firstRight:0, firstDone:0, score:0, streak:0, missed:[], pos:0};
+  renderItem();
+}
+function mult(){ return Math.min(4, 1+Math.floor(R.streak/3)); }
+function hud(){
+  const done = R.firstDone; const pct = Math.round(100*done/R.total);
+  return `<div class="hud"><div class="hudrow"><button class="ghost" id="quit">← Map</button><span>${esc(R.title)}</span><span>${R.score} pts <span class="mult">×${mult()}</span></span></div>
+  <div class="bar"><i style="width:${pct}%"></i></div><div class="hudrow"><span>${Math.min(done+1,R.total)} / ${R.total}${R.queue[R.pos]&&R.queue[R.pos].retry?' · retry':''}</span><span>streak ${R.streak}</span></div></div>`;
+}
+function figHTML(key, item){
+  const d = DIA[key]; if(!d) return '';
+  const mask = d.mask!==false;
+  let boxes = '';
+  if(item && (item.t==='lb'||item.t==='nm')){
+    let tIdx = -1;
+    if(item.t==='nm'){ let k=0; d.b.forEach((b,i)=>{ if(b[4]===item.name){ if(k===item.idx) tIdx=i; k++; } }); }
+    boxes = d.b.map((b,i)=>{
+      const cls = item.t==='lb' ? 'box tap' : (i===tIdx ? 'box target' : 'box');
+      if(!mask && item.t==='nm' && i!==tIdx) return '';
+      const tag = item.t==='lb' ? 'button' : 'div';
+      return `<${tag} class="${cls}" data-bi="${i}" data-name="${esc(b[4])}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" ${item.t==='lb'?'aria-label="covered label"':''}></${tag}>`;
+    }).join('');
+  }
+  return `<div class="fig ${mask?'':'nomask'}"><img src="${d.img}" alt="${esc(d.title)}">${boxes}</div><div class="figcap">${esc(d.title)}</div>`;
+}
+function renderItem(){
+  if(R.pos>=R.queue.length) return finish();
+  const {it, retry} = R.queue[R.pos];
+  const typeName = {mc:'Multiple choice',so:'Sort',od:'Order',mt:'Match',lb:'Tap the label',nm:'Name the box'}[it.t];
+  let body = '';
+  const tag = `<div class="tag">${typeName}${it.trap?' <span class="tr">trap</span>':''}${it.hy?' <span class="hy">high yield</span>':''}${retry?' · second chance':''}</div>`;
+  if(it.t==='mc'){
+    const opts = shuffle(it.o);
+    body = (it.ctx?`<div class="ctx">${esc(it.ctx)}</div>`:'') + (it.img?figHTML(it.img):'') + `<p class="q">${esc(it.q)}</p><div class="opts">${opts.map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  } else if(it.t==='so'){
+    const S = SORTS[it.set];
+    body = `<p class="q">${esc(S.label)}</p><div class="sortitem">${esc(it.item)}</div><div class="cats">${S.cats.map(c=>`<button class="cat" data-key="${c[0]}" style="--cc:var(${c[2]})">${esc(c[1])}</button>`).join('')}</div>`;
+  } else if(it.t==='od'){
+    body = `<p class="q">${esc(it.q)}</p><div class="seq" id="seq"></div><div class="chips">${shuffle(it.steps).map(s=>`<button class="chip" data-v="${esc(s)}">${esc(s)}</button>`).join('')}</div><div class="actions"><button class="ghostbtn" id="undo">Undo</button></div>`;
+  } else if(it.t==='mt'){
+    body = `<p class="q">${esc(it.q)}</p><div class="mtgrid"><div class="mtcol">${it.pairs.map(p=>`<button class="mtb L" data-v="${esc(p[0])}">${esc(p[0])}</button>`).join('')}</div><div class="mtcol">${shuffle(it.pairs.map(p=>p[1])).map(v=>`<button class="mtb Rr" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div></div>`;
+  } else if(it.t==='lb'){
+    body = `<p class="q">Tap the covered label: <span style="color:var(--accent)">${esc(it.name)}</span></p>` + figHTML(it.dia,it);
+  } else if(it.t==='nm'){
+    const d=DIA[it.dia];
+    let opts;
+    if(it.o) opts = it.o.slice();
+    else { const names=[...new Set(d.b.map(b=>b[4]))].filter(n=>n!==it.name); opts=[it.ans, ...shuffle(names).slice(0,3)]; }
+    body = figHTML(it.dia,it) + `<p class="q">${esc(it.q||'Name the label in the orange box.')}</p><div class="opts">${shuffle(opts).map(o=>`<button class="opt" data-v="${esc(o)}">${esc(o)}</button>`).join('')}</div>`;
+  }
+  app.innerHTML = hud() + `<div class="card" id="card">${tag}${body}<div id="fb"></div></div>`;
+  document.getElementById('quit').onclick = ()=>{ R=null; home(); };
+  wire(it);
+  window.scrollTo(0,0);
+}
+function wire(it){
+  const card = document.getElementById('card');
+  if(it.t==='mc' || it.t==='nm'){
+    const right = it.t==='mc' ? it.o[0] : it.ans;
+    card.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.v===right;
+      card.querySelectorAll('.opt').forEach(x=>{ x.disabled=true; if(x.dataset.v===right) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      if(it.t==='nm'){ const t=card.querySelector('.box.target'); if(t){ t.classList.add('right'); } }
+      answer(ok, it.t==='nm' && !ok ? 'It was: '+it.ans : (ok?'':'Answer: '+right));
+    });
+  } else if(it.t==='so'){
+    card.querySelectorAll('.cat').forEach(b=>b.onclick=()=>{
+      const ok = b.dataset.key===it.key;
+      card.querySelectorAll('.cat').forEach(x=>{ x.disabled=true; if(x.dataset.key===it.key) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      const S=SORTS[it.set]; answer(ok, ok?'':'Answer: '+S.cats.find(c=>c[0]===it.key)[1]);
+    });
+  } else if(it.t==='lb'){
+    card.querySelectorAll('.box.tap').forEach(b=>b.onclick=()=>{
+      if(card.dataset.done) return; card.dataset.done=1;
+      const ok = b.dataset.name===it.name;
+      card.querySelectorAll('.box.tap').forEach(x=>{ x.disabled=true; if(x.dataset.name===it.name) x.classList.add('right'); });
+      if(!ok) b.classList.add('wrong');
+      answer(ok, ok?'':'The green outline shows where it is.');
+    });
+  } else if(it.t==='od'){
+    const seq=[]; const seqEl=document.getElementById('seq');
+    const draw=()=>{ seqEl.innerHTML = seq.map((s,i)=>`<div class="slot"><span>${i+1}</span><span>${esc(s)}</span></div>`).join(''); };
+    card.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{
+      seq.push(b.dataset.v); b.disabled=true; draw();
+      if(seq.length===it.steps.length){
+        const ok = seq.every((s,i)=>s===it.steps[i]);
+        seqEl.querySelectorAll('.slot').forEach((el,i)=>{ if(seq[i]!==it.steps[i]) el.classList.add('wrong'); });
+        document.getElementById('undo').disabled=true;
+        answer(ok, ok?'':'Correct order: '+it.steps.map((s,i)=>(i+1)+') '+s).join('  '));
+      }
+    });
+    document.getElementById('undo').onclick=()=>{ const v=seq.pop(); if(v==null) return; const c=[...card.querySelectorAll('.chip')].find(x=>x.dataset.v===v&&x.disabled); if(c) c.disabled=false; draw(); };
+  } else if(it.t==='mt'){
+    let selL=null; const made={};
+    const L=[...card.querySelectorAll('.mtb.L')], Rr=[...card.querySelectorAll('.mtb.Rr')];
+    L.forEach(b=>b.onclick=()=>{ if(b.classList.contains('paired')) return; L.forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); selL=b; });
+    Rr.forEach(b=>b.onclick=()=>{
+      if(!selL || b.classList.contains('paired')) return;
+      made[selL.dataset.v]=b.dataset.v; selL.classList.remove('sel'); selL.classList.add('paired'); b.classList.add('paired');
+      selL.textContent = selL.dataset.v+' → '+b.dataset.v; selL=null;
+      if(Object.keys(made).length===it.pairs.length){
+        const ok = it.pairs.every(p=>made[p[0]]===p[1]);
+        L.forEach(x=>{ const p=it.pairs.find(p=>p[0]===x.dataset.v); x.classList.add(made[p[0]]===p[1]?'right':'wrong'); });
+        answer(ok, ok?'':'Pairs: '+it.pairs.map(p=>p[0]+' → '+p[1]).join(' · '));
+      }
+    });
+  }
+}
+function answer(ok, extra){
+  const q = R.queue[R.pos];
+  if(!q.retry){
+    R.firstDone++;
+    if(ok){ R.firstRight++; }
+    else { R.missed.push(q.it.id); if(!SAVE.miss.includes(q.it.id)) SAVE.miss.push(q.it.id); }
+  }
+  if(ok){ R.score += 10*mult(); R.streak++; if(R.mode==='miss'||q.retry) SAVE.miss = SAVE.miss.filter(id=>id!==q.it.id); }
+  else { R.streak=0; R.queue.push({it:q.it, retry:true}); }
+  store.set(SAVE);
+  const fb = document.getElementById('fb');
+  fb.innerHTML = `<div class="fb ${ok?'ok':'no'}"><b>${ok?'Correct':'Not quite'}</b>${extra?esc(extra)+'<br>':''}${esc(q.it.why||'')}</div><button class="next" id="next">${R.pos+1<R.queue.length?'Next':'See results'}</button>`;
+  const n=document.getElementById('next'); n.onclick=()=>{ R.pos++; renderItem(); }; n.focus({preventScroll:true});
+  fb.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+function finish(){
+  const acc = R.total? R.firstRight/R.total : 0;
+  const st = acc>=0.9?3:acc>=0.75?2:acc>=0.5?1:0;
+  if(R.mode==='stage'){ SAVE.stars[R.stage]=Math.max(SAVE.stars[R.stage]||0, st); }
+  SAVE.best=Math.max(SAVE.best||0,R.score); store.set(SAVE);
+  const missed=[...new Set(R.missed)].map(id=>byId[id]);
+  const label = it => it.t==='so'?it.item : (it.t==='lb'||it.t==='nm')? (it.q||'Label')+': '+it.ans : it.q;
+  app.innerHTML = `<div class="card result" style="margin-top:18px"><div class="eyebrow">${esc(R.title)}</div><h2>${st===3?'Summit':st===2?'Almost there':st===1?'Halfway up':'Keep climbing'}</h2>
+    <div class="big-stars">${starHTML(st)}</div>
+    <p class="stat">${R.firstRight}/${R.total} first try (${Math.round(acc*100)}%) · ${R.score} pts · best ${SAVE.best}</p>
+    ${missed.length?`<div class="eyebrow" style="margin-top:12px">Missed on first try</div><ul class="misslist">${missed.map(it=>`<li>${esc(label(it))}</li>`).join('')}</ul>`:''}
+    <div class="actions" style="margin-top:16px"><button class="next" id="again">Run it again</button><button class="ghostbtn" id="map">Back to map</button></div></div>`;
+  document.getElementById('again').onclick=()=>startRun(R.mode,R.stage);
+  document.getElementById('map').onclick=()=>{ R=null; home(); };
+}
+window.GAME = { cur: ()=> R && R.queue[R.pos] ? R.queue[R.pos].it : null, STAGES, DIA, SORTS, startRun, home };
+
+home();
+</script>
